@@ -25,8 +25,6 @@ self_pruning$FDis<-neighbor.data$FDis[match(self_pruning$UniqueTreeID,
                                             neighbor.data$UniqueTreeID)]
 self_pruning$qDTM<-neighbor.data$qDTM[match(self_pruning$UniqueTreeID,
                                             neighbor.data$UniqueTreeID)]
-self_pruning$focalID<-neighbor.data$focal.FI1[match(self_pruning$UniqueTreeID,
-                                                    neighbor.data$UniqueTreeID)]
 self_pruning$neighborID<-neighbor.data$neighbor.FI1[match(self_pruning$UniqueTreeID,
                                                           neighbor.data$UniqueTreeID)]
 self_pruning$neighbor.comp<-neighbor.data$comp.index[match(self_pruning$UniqueTreeID,
@@ -37,6 +35,13 @@ traits<-read.csv("TraitData/IDENT_TRAIT_DATABASE_2020-10-20.csv")
 self_pruning$ShadeTol<-traits$Shade.tolerance[match(self_pruning$Species,
                                                     traits$SpeciesCode)]
 
+## read in trait PCA to get focal sp functional ID
+## focal tree identity of PC1
+trait.pca.scores<-read.csv("TraitData/trait_pca_scores.csv")
+self_pruning$focalID<-trait.pca.scores$PC1[match(self_pruning$Species,
+                                                 trait.pca.scores$X)]
+
+
 ## species means of crown base pseudo-LAI
 pseudoLAI_table<-aggregate(self_pruning$pseudoLAI_base,
                            by=list(self_pruning$Species),
@@ -44,13 +49,24 @@ pseudoLAI_table<-aggregate(self_pruning$pseudoLAI_base,
 colnames(pseudoLAI_table)<-c("Species","PseudoLAI")
 pseudoLAI_table$ShadeTol<-traits$Shade.tolerance[match(pseudoLAI_table$Species,
                                                        traits$SpeciesCode)]
+pseudoLAI_table$FocalID<-trait.pca.scores$PC1[match(pseudoLAI_table$Species,
+                                                    trait.pca.scores$X)]
 
 summary(lm(PseudoLAI~ShadeTol,data=pseudoLAI_table))
 
 ggplot(data=self_pruning,aes(x=Species,y=pseudoLAI_base))+
   geom_violin()+geom_point()
 
-ggplot(data=pseudoLAI_table,aes(x=ShadeTol,y=PseudoLAI,label=Species))+
+ggplot(data=pseudoLAI_table,
+       aes(x=ShadeTol,y=PseudoLAI,label=Species))+
+  geom_smooth(method="lm")+geom_text()+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  labs(x="Shade tolerance",
+       y="Pseudo-LAI above crown base")
+
+ggplot(data=pseudoLAI_table,
+       aes(x=FocalID,y=PseudoLAI,label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=20))+

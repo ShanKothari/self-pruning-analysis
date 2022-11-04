@@ -103,10 +103,6 @@ neighbor.total<-unlist(lapply(neighbor.area,
                               function(neighborhood) sum(neighborhood$outcome,na.rm=T)))
 neighbor.area<-neighbor.area[-which(neighbor.total==0)]
 
-## get focal sp ID for each remaining neighborhood
-neighbor.focalsp<-unlist(lapply(neighbor.area,
-                                function(neighborhood) neighborhood$species[which(neighborhood$distance==0)]))
-
 ## calculate various competition indices
 ## including a distance-weighted sum
 ## and Hegyi (also incorporates focal tree size)
@@ -165,10 +161,7 @@ traits$SpeciesCode<-NULL
 ## do PCA of traits
 trait.pca<-prcomp(traits,scale. = T)
 trait.pca.scores<-trait.pca$x
-
-## focal tree identity of PC1
-focal.ID<-data.frame(trait.pca.scores)$PC1[match(neighbor.focalsp,
-                                                 rownames(trait.pca.scores))]
+write.csv(trait.pca.scores,"TraitData/trait_pca_scores.csv")
 
 ## calculate CWM of first PCA component, omitting the central tree
 ## this gives as the functional identity of the neighborhood
@@ -192,7 +185,6 @@ neighbor.data<-data.frame(UniqueTreeID=names(neighbor.area),
                           comp.index=neighbor.comp.df$comp.index,
                           Hegyi.index=neighbor.comp.df$Hegyi.index,
                           neighbor.FI1=neighbor.CWM1,
-                          focal.FI1=focal.ID,
                           FDis=neighbor.FDis$FDis,
                           qDTM=neighbor.FTD$com.FTD$qDTM)
 
