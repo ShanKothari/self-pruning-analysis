@@ -61,7 +61,7 @@ ggplot(data=pseudoLAI_table,
        aes(x=ShadeTol,y=PseudoLAI,label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
-  theme(text=element_text(size=20))+
+  theme(text=element_text(size=15))+
   labs(x="Shade tolerance",
        y="Pseudo-LAI above crown base")
 
@@ -69,6 +69,6 @@ ggplot(data=pseudoLAI_table,
        aes(x=FocalID,y=PseudoLAI,label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
-  theme(text=element_text(size=20))+
-  labs(x="Shade tolerance",
+  theme(text=element_text(size=15))+
+  labs(x="Functional identity",
        y="Pseudo-LAI above crown base")
