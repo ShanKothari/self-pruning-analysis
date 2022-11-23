@@ -41,7 +41,6 @@ trait.pca.scores<-read.csv("TraitData/trait_pca_scores.csv")
 self_pruning$focalID<-trait.pca.scores$PC1[match(self_pruning$Species,
                                                  trait.pca.scores$X)]
 
-
 ## species means of crown base pseudo-LAI
 pseudoLAI_table<-aggregate(self_pruning$pseudoLAI_base,
                            by=list(self_pruning$Species),
