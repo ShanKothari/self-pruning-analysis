@@ -42,8 +42,8 @@ m_base_light_neighbor<-psem(
 )
 
 m_base_height<-psem(
-  lm(HeightTop~1+ShadeTol+focalID,data=self_pruning_standard)
-  lm(pseudoLAI_top~1+HeightTop,data=self_pruning_standard)
+  lm(HeightTop~1+ShadeTol+focalID,data=self_pruning_standard),
+  lm(pseudoLAI_top~1+HeightTop,data=self_pruning_standard),
   lm(HeightBase~1+HeightTop+CR_average+ShadeTol+focalID+pseudoLAI_top,data=self_pruning_standard)
 )
 
