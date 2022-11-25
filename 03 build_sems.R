@@ -3,6 +3,8 @@ setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 library(piecewiseSEM)
 library(tidySEM)
 
+self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
+
 ## z-standardize important variables
 self_pruning_standard<-self_pruning
 standard_cols<-c("neighbor.comp","FDis","qDTM",

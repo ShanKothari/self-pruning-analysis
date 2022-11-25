@@ -41,6 +41,11 @@ trait.pca.scores<-read.csv("TraitData/trait_pca_scores.csv")
 self_pruning$focalID<-trait.pca.scores$PC1[match(self_pruning$Species,
                                                  trait.pca.scores$X)]
 
+write.csv(self_pruning,"SelfPruningData/self_pruning_processed.csv",row.names=F)
+
+#######################################
+## working with species means
+
 ## species means of crown base pseudo-LAI
 pseudoLAI_table<-aggregate(self_pruning$pseudoLAI_base,
                            by=list(self_pruning$Species),
@@ -52,9 +57,6 @@ pseudoLAI_table$FocalID<-trait.pca.scores$PC1[match(pseudoLAI_table$Species,
                                                     trait.pca.scores$X)]
 
 summary(lm(PseudoLAI~ShadeTol,data=pseudoLAI_table))
-
-ggplot(data=self_pruning,aes(x=Species,y=pseudoLAI_base))+
-  geom_violin()+geom_point()
 
 ggplot(data=pseudoLAI_table,
        aes(x=ShadeTol,y=PseudoLAI,label=Species))+
