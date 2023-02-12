@@ -53,10 +53,10 @@ pseudoLAI_table<-aggregate(self_pruning$pseudoLAI_base,
 colnames(pseudoLAI_table)<-c("Species","PseudoLAI")
 pseudoLAI_table$ShadeTol<-traits$Shade.tolerance[match(pseudoLAI_table$Species,
                                                        traits$SpeciesCode)]
-pseudoLAI_table$FocalID<-trait.pca.scores$PC1[match(pseudoLAI_table$Species,
+pseudoLAI_table$focalID<-trait.pca.scores$PC1[match(pseudoLAI_table$Species,
                                                     trait.pca.scores$X)]
 
-summary(lm(PseudoLAI~ShadeTol,data=pseudoLAI_table))
+summary(lm(PseudoLAI~ShadeTol+focalID,data=pseudoLAI_table))
 
 ggplot(data=pseudoLAI_table,
        aes(x=ShadeTol,y=PseudoLAI,label=Species))+
@@ -67,7 +67,7 @@ ggplot(data=pseudoLAI_table,
        y="Pseudo-LAI above crown base")
 
 ggplot(data=pseudoLAI_table,
-       aes(x=FocalID,y=PseudoLAI,label=Species))+
+       aes(x=focalID,y=PseudoLAI,label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
