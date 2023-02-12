@@ -7,6 +7,11 @@ library(ggplot2)
 
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 
+## one BEPA has a neighborhood competition index more than twice the others
+## so we can eliminate it as a potential outlier
+neighbor_outlier<-which(self_pruning$neighbor.comp>60000)
+self_pruning<-self_pruning[-neighbor_outlier,]
+
 ## look at simple pairwise relationships
 
 ## as neighbor competition increases
