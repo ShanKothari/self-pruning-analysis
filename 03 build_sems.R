@@ -85,6 +85,28 @@ HeightBase~1+HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID+neighbor.comp+q
 fit_base_height_neighbor <- sem(m_base_height_neighbor_lavaan,
                                 data=self_pruning_standard)
 
+m_base_height_light_lavaan<-'
+neighbor.comp~1
+HeightTop~ShadeTol+focalID
+CR_average~ShadeTol+focalID
+pseudoLAI_top~HeightTop
+pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID
+HeightBase~pseudoLAI_base+HeightTop+CR_average+ShadeTol+focalID
+'
+fit_base_height_light <- sem(m_base_height_light_lavaan,
+                             data=self_pruning_standard)
+
+m_base_height_light_neighbor_lavaan<-'
+neighbor.comp~qDTM+neighborID
+HeightTop~neighbor.comp+ShadeTol+focalID
+CR_average~neighbor.comp+ShadeTol+focalID
+pseudoLAI_top~HeightTop+neighbor.comp+qDTM+neighborID
+pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID+neighbor.comp+qDTM+neighborID
+HeightBase~pseudoLAI_base+HeightTop+CR_average+ShadeTol+focalID+neighbor.comp+qDTM+neighborID
+'
+fit_base_height_light_neighbor <- sem(m_base_height_light_neighbor_lavaan,
+                                      data=self_pruning_standard)
+
 ########################################
 ## species-specific fits
 
