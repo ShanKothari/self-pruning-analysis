@@ -12,8 +12,7 @@ self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 neighbor_outlier<-which(self_pruning$neighbor.comp>60000)
 self_pruning<-self_pruning[-neighbor_outlier,]
 
-## look at simple pairwise relationships
-
+## look at simple pairwise relationships:
 ## as neighbor competition increases
 ## height and crown depth both decrease
 ## but the living fraction of the crown increases
@@ -43,9 +42,15 @@ summary(lm(pseudoLAI_base~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focal
            data=self_pruning_standard))
 summary(lm(AliveCrown....total.height.~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
            data=self_pruning_standard))
+summary(lm(CD~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
+           data=self_pruning_standard))
+
 
 summary(lm(pseudoLAI_base~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
            data=self_pruning_standard))
+
+########################################
+## local estimation of SEMs
 
 ## specify SEMs
 ## should I include qDTM directly in predicting HeightTop for neighborhood models?
@@ -158,7 +163,15 @@ fit_base_height_sp_list<-lapply(self_pruning_standard_sp,
                                 function(sp_df) sem(m_base_height_lavaan_sp,data=sp_df))
 fit_base_height_neighbor_sp_list<-lapply(self_pruning_standard_sp,
                                          function(sp_df) sem(m_base_height_neighbor_lavaan_sp,data=sp_df))
+data.frame(no.neighbor=unlist(lapply(fit_base_height_sp_list,AIC)),
+           neighbor=unlist(lapply(fit_base_height_neighbor_sp_list,AIC)))
 
+fit_base_light_sp_list<-lapply(self_pruning_standard_sp,
+                               function(sp_df) sem(m_base_light_lavaan_sp,data=sp_df))
+fit_base_light_neighbor_sp_list<-lapply(self_pruning_standard_sp,
+                                        function(sp_df) sem(m_base_light_neighbor_lavaan_sp,data=sp_df))
+data.frame(no.neighbor=unlist(lapply(fit_base_light_sp_list,AIC)),
+           neighbor=unlist(lapply(fit_base_light_neighbor_sp_list,AIC)))
 
 ########################################
 ## sandbox for simulations to predict on alternate data
