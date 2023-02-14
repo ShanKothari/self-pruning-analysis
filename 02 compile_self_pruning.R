@@ -103,5 +103,23 @@ ggplot(self_pruning,
            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)
 
-height_sp<-summary(lm(pseudoLAI_base~HeightTop*Species,
-                      data=self_pruning))
+self_pruning_sp<-split(self_pruning,
+                       f = self_pruning$Species)
+light_height_slopes<-unlist(lapply(self_pruning_sp,
+                                   function(x) {
+                                     reg<-lm(pseudoLAI_base~HeightTop,data=x)
+                                     return(reg$coefficients[2])
+                                     }))
+pseudoLAI_table$light_height_slope<-light_height_slopes[match(pseudoLAI_table$Species,
+                                                              names(self_pruning_sp))]
+ggplot(data=pseudoLAI_table,
+       aes(x=focalID,y=light_height_slope,label=Species))+
+  geom_smooth(method="lm")+geom_text()+
+  theme_bw()+
+  theme(text=element_text(size=15))+
+  labs(x="Functional identity",
+       y="Change in pseudo-LAI at base with top height")
+
+
+##########
+## to do: check that neighbor comp is calculated correctly
