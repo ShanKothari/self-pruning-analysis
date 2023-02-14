@@ -2,26 +2,12 @@ setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 
 library(piecewiseSEM)
 library(tidySEM)
-library(lavaan) ## for testing
+library(lavaan)
 library(ggplot2)
+library(lme4)
+library(lmerTest)
 
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
-
-## one BEPA has a neighborhood competition index more than twice the others
-## so we can eliminate it as a potential outlier
-neighbor_outlier<-which(self_pruning$neighbor.comp>60000)
-self_pruning<-self_pruning[-neighbor_outlier,]
-
-## look at simple pairwise relationships:
-## as neighbor competition increases
-## height and crown depth both decrease
-## but the living fraction of the crown increases
-## and the light at the crown base increases a bit?
-ggplot(self_pruning,
-       aes(x=neighbor.comp,
-           y=pseudoLAI_base,
-           color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)
 
 ## z-standardize important variables
 self_pruning_standard<-self_pruning
