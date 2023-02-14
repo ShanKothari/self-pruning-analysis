@@ -30,6 +30,11 @@ self_pruning$neighborID<-neighbor.data$neighbor.FI1[match(self_pruning$UniqueTre
 self_pruning$neighbor.comp<-neighbor.data$comp.index[match(self_pruning$UniqueTreeID,
                                                            neighbor.data$UniqueTreeID)]
 
+## one BEPA has a neighborhood competition index more than twice the others
+## so we can eliminate it as a potential outlier
+neighbor_outlier<-which(self_pruning$neighbor.comp>60000)
+self_pruning<-self_pruning[-neighbor_outlier,]
+
 ## read in traits to get shade tolerance
 traits<-read.csv("TraitData/IDENT_TRAIT_DATABASE_2020-10-20.csv")
 self_pruning$ShadeTol<-traits$Shade.tolerance[match(self_pruning$Species,
@@ -45,6 +50,10 @@ write.csv(self_pruning,"SelfPruningData/self_pruning_processed.csv",row.names=F)
 
 #######################################
 ## working with species means
+
+## could look only at trees in monoculture plots
+## although I currently do not
+self_pruning_mono<-self_pruning[self_pruning$nbsp==1,]
 
 ## species means of crown base pseudo-LAI
 pseudoLAI_table<-aggregate(self_pruning$pseudoLAI_base,
@@ -73,3 +82,26 @@ ggplot(data=pseudoLAI_table,
   theme(text=element_text(size=15))+
   labs(x="Functional identity",
        y="Pseudo-LAI above crown base")
+
+########################################
+## examining simple relationships within the bivariate data
+
+## as neighbor competition increases
+## height and crown depth both decrease
+## but the living fraction of the crown increases
+## and the light at the crown base increases a bit?
+ggplot(self_pruning,
+       aes(x=neighbor.comp,
+           y=pseudoLAI_base,
+           color=Species))+
+  geom_point()+geom_smooth(method="lm",se=F)
+
+## this plot is kind of odd and visually striking...
+ggplot(self_pruning,
+       aes(x=HeightTop,
+           y=pseudoLAI_base,
+           color=Species))+
+  geom_point()+geom_smooth(method="lm",se=F)
+
+height_sp<-summary(lm(pseudoLAI_base~HeightTop*Species,
+                      data=self_pruning))
