@@ -28,7 +28,7 @@ summary(lm(pseudoLAI_base~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focal
            data=self_pruning_standard))
 summary(lm(AliveCrown....total.height.~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
            data=self_pruning_standard))
-summary(lm(CD~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
+summary(lm(CrownDepth~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
            data=self_pruning_standard))
 
 

@@ -11,9 +11,16 @@ self_pruning$UniqueTreeID<-paste(self_pruning$Block,
                                  self_pruning$TreeID,
                                  sep="_")
 
+####################################
 ## produce new self-pruning and predictor variables
+self_pruning$CrownDepth<-self_pruning$HeightTop-self_pruning$HeightBase
+
+## it's missing from one tree, which presumably died
+## between Jon's measurements and the fall survey
+self_pruning$BasalDiam<-as.numeric(self_pruning$BasalDiam)
+self_pruning$BasalArea<-(self_pruning$BasalDiam/2)^2*pi
+
 ## 'pseudo-LAI' style vars have better statistical properties
-self_pruning$CD<-self_pruning$HeightTop-self_pruning$HeightBase
 self_pruning$pseudoLAI_top<- -log(self_pruning$LightTop../100)
 self_pruning$pseudoLAI_base<- -log(self_pruning$LightBase./100)
 
@@ -56,27 +63,26 @@ write.csv(self_pruning,"SelfPruningData/self_pruning_processed.csv",row.names=F)
 self_pruning_mono<-self_pruning[self_pruning$nbsp==1,]
 
 ## species means of crown base pseudo-LAI
-pseudoLAI_table<-aggregate(self_pruning$pseudoLAI_base,
-                           by=list(self_pruning$Species),
-                           FUN=mean,na.rm=T)
-colnames(pseudoLAI_table)<-c("Species","PseudoLAI")
-pseudoLAI_table$ShadeTol<-traits$Shade.tolerance[match(pseudoLAI_table$Species,
-                                                       traits$SpeciesCode)]
-pseudoLAI_table$focalID<-trait.pca.scores$PC1[match(pseudoLAI_table$Species,
-                                                    trait.pca.scores$X)]
+self_pruning_sub<-self_pruning[,c("pseudoLAI_base","Species","HeightTop","BasalArea")]
+species_means<-aggregate(.~Species,data = self_pruning_sub,
+                         FUN = mean,na.rm = T)
+species_means$ShadeTol<-traits$Shade.tolerance[match(species_means$Species,
+                                                     traits$SpeciesCode)]
+species_means$focalID<-trait.pca.scores$PC1[match(species_means$Species,
+                                                  trait.pca.scores$X)]
 
-summary(lm(PseudoLAI~ShadeTol+focalID,data=pseudoLAI_table))
+summary(lm(pseudoLAI_base~ShadeTol+focalID,data=species_means))
 
-ggplot(data=pseudoLAI_table,
-       aes(x=ShadeTol,y=PseudoLAI,label=Species))+
+ggplot(data=species_means,
+       aes(x=ShadeTol,y=pseudoLAI_base,label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Shade tolerance",
        y="Pseudo-LAI above crown base")
 
-ggplot(data=pseudoLAI_table,
-       aes(x=focalID,y=PseudoLAI,label=Species))+
+ggplot(data=species_means,
+       aes(x=focalID,y=pseudoLAI_base,label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
@@ -109,17 +115,16 @@ light_height_slopes<-unlist(lapply(self_pruning_sp,
                                    function(x) {
                                      reg<-lm(pseudoLAI_base~HeightTop,data=x)
                                      return(reg$coefficients[2])
-                                     }))
-pseudoLAI_table$light_height_slope<-light_height_slopes[match(pseudoLAI_table$Species,
-                                                              names(self_pruning_sp))]
-ggplot(data=pseudoLAI_table,
+                                   }))
+species_means$light_height_slope<-light_height_slopes[match(species_means$Species,
+                                                            names(self_pruning_sp))]
+ggplot(data=species_means,
        aes(x=focalID,y=light_height_slope,label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Functional identity",
        y="Change in pseudo-LAI at base with top height")
-
 
 ##########
 ## to do: check that neighbor comp is calculated correctly
