@@ -119,6 +119,7 @@ ggplot(self_pruning,
            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)
 
+## pull out the species-specific slopes
 self_pruning_sp<-split(self_pruning,
                        f = self_pruning$Species)
 light_height_slopes<-unlist(lapply(self_pruning_sp,
@@ -134,7 +135,7 @@ light_neighbor_acq_slopes<-unlist(lapply(self_pruning_sp,
                                      reg<-lm(pseudoLAI_base~neighbor_acq,data=x)
                                      return(reg$coefficients[2])
                                    }))
-species_means$light_neighbor.id_slope<-light_neighbor.id_slopes[match(species_means$Species,
+species_means$light_neighbor_acq_slope<-light_neighbor_acq_slopes[match(species_means$Species,
                                                             names(self_pruning_sp))]
 
 
@@ -147,7 +148,7 @@ ggplot(data=species_means,
        y="Change in pseudo-LAI at base with top height")
 
 ggplot(data=species_means,
-       aes(x=focal_acq,y=-light_neighbor.id_slope,label=Species))+
+       aes(x=focal_acq,y=-light_neighbor_acq_slope,label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
