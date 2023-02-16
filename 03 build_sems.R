@@ -15,7 +15,7 @@ standard_cols<-c("neighbor_comp","FDis","qDTM",
                  "neighbor_richness","HeightTop",
                  "HeightBase","CR_average","shade_tol",
                  "pseudoLAI_base","pseudoLAI_top",
-                 "focal_acq","neighborID")
+                 "focal_acq","neighbor_acq")
 self_pruning_standard[,standard_cols]<-scale(self_pruning_standard[,standard_cols])
 
 ## drop dead trees
