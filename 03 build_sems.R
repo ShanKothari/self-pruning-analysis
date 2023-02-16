@@ -11,28 +11,27 @@ self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 
 ## z-standardize important variables
 self_pruning_standard<-self_pruning
-standard_cols<-c("neighbor.comp","FDis","qDTM",
-                 "neighbor.richness","HeightTop",
-                 "HeightBase","CR_average","ShadeTol",
+standard_cols<-c("neighbor_comp","FDis","qDTM",
+                 "neighbor_richness","HeightTop",
+                 "HeightBase","CR_average","shade_tol",
                  "pseudoLAI_base","pseudoLAI_top",
-                 "focalID","neighborID")
+                 "focal_acq","neighborID")
 self_pruning_standard[,standard_cols]<-scale(self_pruning_standard[,standard_cols])
 
 ## drop dead trees
 self_pruning_standard<-self_pruning_standard[-which(toupper(self_pruning_standard$TreeID)=="DEAD"),]
 
 ## try some exploratory multivariate analyses I guess
-summary(lm(HeightBase~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
+summary(lm(HeightBase~HeightTop+neighbor_comp+qDTM+neighborID+shade_tol+focal_acq,
            data=self_pruning_standard))
-summary(lm(pseudoLAI_base~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
+summary(lm(pseudoLAI_base~HeightTop+neighbor_comp+qDTM+neighborID+shade_tol+focal_acq,
            data=self_pruning_standard))
-summary(lm(AliveCrown....total.height.~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
+summary(lm(AliveCrown....total.height.~HeightTop+neighbor_comp+qDTM+neighborID+shade_tol+focal_acq,
            data=self_pruning_standard))
-summary(lm(CrownDepth~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
+summary(lm(CrownDepth~HeightTop+neighbor_comp+qDTM+neighborID+shade_tol+focal_acq,
            data=self_pruning_standard))
 
-
-summary(lm(pseudoLAI_base~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focalID,
+summary(lmer(pseudoLAI_base~HeightTop+neighbor_comp+qDTM+neighborID+(1|Species),
            data=self_pruning_standard))
 
 ########################################
@@ -42,63 +41,63 @@ summary(lm(pseudoLAI_base~HeightTop+neighbor.comp+qDTM+neighborID+ShadeTol+focal
 ## should I include qDTM directly in predicting HeightTop for neighborhood models?
 
 m_base_light_lavaan<-'
-neighbor.comp~1
-HeightTop~1+ShadeTol+focalID
-CR_average~1+ShadeTol+focalID
+neighbor_comp~1
+HeightTop~1+shade_tol+focal_acq
+CR_average~1+shade_tol+focal_acq
 pseudoLAI_top~1+HeightTop
-pseudoLAI_base~1+HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID
+pseudoLAI_base~1+HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq
 '
 fit_base_light <- sem(m_base_light_lavaan,
                       data=self_pruning_standard)
 
 m_base_light_neighbor_lavaan<-'
-neighbor.comp~1+qDTM+neighborID
-HeightTop~1+neighbor.comp+ShadeTol+focalID
-CR_average~1+neighbor.comp+ShadeTol+focalID
-pseudoLAI_top~1+HeightTop+neighbor.comp+qDTM+neighborID
-pseudoLAI_base~1+HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID+neighbor.comp+qDTM+neighborID
+neighbor_comp~1+qDTM+neighborID
+HeightTop~1+neighbor_comp+shade_tol+focal_acq
+CR_average~1+neighbor_comp+shade_tol+focal_acq
+pseudoLAI_top~1+HeightTop+neighbor_comp+qDTM+neighborID
+pseudoLAI_base~1+HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighborID
 '
 fit_base_light_neighbor <- sem(m_base_light_neighbor_lavaan,
                                data=self_pruning_standard)
 
 m_base_height_lavaan<-'
-neighbor.comp~1
-HeightTop~1+ShadeTol+focalID
-CR_average~1+ShadeTol+focalID
+neighbor_comp~1
+HeightTop~1+shade_tol+focal_acq
+CR_average~1+shade_tol+focal_acq
 pseudoLAI_top~1+HeightTop
-HeightBase~1+HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID
+HeightBase~1+HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq
 '
 fit_base_height <- sem(m_base_height_lavaan,
                        data=self_pruning_standard)
 
 m_base_height_neighbor_lavaan<-'
-neighbor.comp~1+qDTM+neighborID
-HeightTop~1+neighbor.comp+ShadeTol+focalID
-CR_average~1+neighbor.comp+ShadeTol+focalID
-pseudoLAI_top~1+HeightTop+neighbor.comp+qDTM+neighborID
-HeightBase~1+HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID+neighbor.comp+qDTM+neighborID
+neighbor_comp~1+qDTM+neighborID
+HeightTop~1+neighbor_comp+shade_tol+focal_acq
+CR_average~1+neighbor_comp+shade_tol+focal_acq
+pseudoLAI_top~1+HeightTop+neighbor_comp+qDTM+neighborID
+HeightBase~1+HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighborID
 '
 fit_base_height_neighbor <- sem(m_base_height_neighbor_lavaan,
                                 data=self_pruning_standard)
 
 m_base_height_light_lavaan<-'
-neighbor.comp~1
-HeightTop~ShadeTol+focalID
-CR_average~ShadeTol+focalID
+neighbor_comp~1
+HeightTop~shade_tol+focal_acq
+CR_average~shade_tol+focal_acq
 pseudoLAI_top~HeightTop
-pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID
-HeightBase~pseudoLAI_base+HeightTop+CR_average+ShadeTol+focalID
+pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq
+HeightBase~pseudoLAI_base+HeightTop+CR_average+shade_tol+focal_acq
 '
 fit_base_height_light <- sem(m_base_height_light_lavaan,
                              data=self_pruning_standard)
 
 m_base_height_light_neighbor_lavaan<-'
-neighbor.comp~qDTM+neighborID
-HeightTop~neighbor.comp+ShadeTol+focalID
-CR_average~neighbor.comp+ShadeTol+focalID
-pseudoLAI_top~HeightTop+neighbor.comp+qDTM+neighborID
-pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID+neighbor.comp+qDTM+neighborID
-HeightBase~pseudoLAI_base+HeightTop+CR_average+ShadeTol+focalID+neighbor.comp+qDTM+neighborID
+neighbor_comp~qDTM+neighborID
+HeightTop~neighbor_comp+shade_tol+focal_acq
+CR_average~neighbor_comp+shade_tol+focal_acq
+pseudoLAI_top~HeightTop+neighbor_comp+qDTM+neighborID
+pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighborID
+HeightBase~pseudoLAI_base+HeightTop+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighborID
 '
 fit_base_height_light_neighbor <- sem(m_base_height_light_neighbor_lavaan,
                                       data=self_pruning_standard)
@@ -110,7 +109,7 @@ fit_base_height_light_neighbor <- sem(m_base_height_light_neighbor_lavaan,
 ## variables since these are constant within species
 
 m_base_light_lavaan_sp<-'
-neighbor.comp~1
+neighbor_comp~1
 HeightTop~1
 CR_average~1
 pseudoLAI_top~1+HeightTop
@@ -118,15 +117,15 @@ pseudoLAI_base~1+HeightTop+pseudoLAI_top+CR_average
 '
 
 m_base_light_neighbor_lavaan_sp<-'
-neighbor.comp~1+qDTM+neighborID
-HeightTop~1+neighbor.comp
-CR_average~1+neighbor.comp
-pseudoLAI_top~1+HeightTop+neighbor.comp+qDTM+neighborID
-pseudoLAI_base~1+HeightTop+pseudoLAI_top+CR_average+neighbor.comp+qDTM+neighborID
+neighbor_comp~1+qDTM+neighborID
+HeightTop~1+neighbor_comp
+CR_average~1+neighbor_comp
+pseudoLAI_top~1+HeightTop+neighbor_comp+qDTM+neighborID
+pseudoLAI_base~1+HeightTop+pseudoLAI_top+CR_average+neighbor_comp+qDTM+neighborID
 '
 
 m_base_height_lavaan_sp<-'
-neighbor.comp~1
+neighbor_comp~1
 HeightTop~1
 CR_average~1
 pseudoLAI_top~1+HeightTop
@@ -134,11 +133,11 @@ HeightBase~1+HeightTop+pseudoLAI_top+CR_average
 '
 
 m_base_height_neighbor_lavaan_sp<-'
-neighbor.comp~1+qDTM+neighborID
-HeightTop~1+neighbor.comp
-CR_average~1+neighbor.comp
-pseudoLAI_top~1+HeightTop+neighbor.comp+qDTM+neighborID
-HeightBase~1+HeightTop+pseudoLAI_top+CR_average+neighbor.comp+qDTM+neighborID
+neighbor_comp~1+qDTM+neighborID
+HeightTop~1+neighbor_comp
+CR_average~1+neighbor_comp
+pseudoLAI_top~1+HeightTop+neighbor_comp+qDTM+neighborID
+HeightBase~1+HeightTop+pseudoLAI_top+CR_average+neighbor_comp+qDTM+neighborID
 '
 
 ## split up data
@@ -172,55 +171,55 @@ tmp<-predict(m_base_height_light_neighbor,newdata=sp_standard_nodiv)
 ## local estimation with piecewise SEM
 
 m_base_light<-psem(
-  lm(HeightTop~ShadeTol+focalID,data=self_pruning_standard),
-  lm(CR_average~ShadeTol+focalID,data=self_pruning_standard),
+  lm(HeightTop~shade_tol+focal_acq,data=self_pruning_standard),
+  lm(CR_average~shade_tol+focal_acq,data=self_pruning_standard),
   lm(pseudoLAI_top~HeightTop,data=self_pruning_standard),
-  lm(pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID,
+  lm(pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq,
      data=self_pruning_standard)
 )
 
 m_base_light_neighbor<-psem(
-  lm(neighbor.comp~qDTM+neighborID,data=self_pruning_standard),
-  lm(HeightTop~neighbor.comp+ShadeTol+focalID,data=self_pruning_standard),
-  lm(CR_average~neighbor.comp+ShadeTol+focalID,data=self_pruning_standard),
-  lm(pseudoLAI_top~HeightTop+neighbor.comp+qDTM+neighborID,data=self_pruning_standard),
-  lm(pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID+neighbor.comp+qDTM+neighborID,
+  lm(neighbor_comp~qDTM+neighborID,data=self_pruning_standard),
+  lm(HeightTop~neighbor_comp+shade_tol+focal_acq,data=self_pruning_standard),
+  lm(CR_average~neighbor_comp+shade_tol+focal_acq,data=self_pruning_standard),
+  lm(pseudoLAI_top~HeightTop+neighbor_comp+qDTM+neighborID,data=self_pruning_standard),
+  lm(pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighborID,
      data=self_pruning_standard)
 )
 
 m_base_height<-psem(
-  lm(HeightTop~ShadeTol+focalID,data=self_pruning_standard),
-  lm(CR_average~ShadeTol+focalID,data=self_pruning_standard),
+  lm(HeightTop~shade_tol+focal_acq,data=self_pruning_standard),
+  lm(CR_average~shade_tol+focal_acq,data=self_pruning_standard),
   lm(pseudoLAI_top~HeightTop,data=self_pruning_standard),
-  lm(HeightBase~HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID,data=self_pruning_standard)
+  lm(HeightBase~HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq,data=self_pruning_standard)
 )
 
 m_base_height_neighbor<-psem(
-  lm(neighbor.comp~qDTM+neighborID,data=self_pruning_standard),
-  lm(HeightTop~neighbor.comp+ShadeTol+focalID,data=self_pruning_standard),
-  lm(CR_average~neighbor.comp+ShadeTol+focalID,data=self_pruning_standard),
-  lm(pseudoLAI_top~HeightTop+neighbor.comp+qDTM+neighborID,data=self_pruning_standard),
-  lm(HeightBase~HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID+neighbor.comp+qDTM+neighborID,
+  lm(neighbor_comp~qDTM+neighborID,data=self_pruning_standard),
+  lm(HeightTop~neighbor_comp+shade_tol+focal_acq,data=self_pruning_standard),
+  lm(CR_average~neighbor_comp+shade_tol+focal_acq,data=self_pruning_standard),
+  lm(pseudoLAI_top~HeightTop+neighbor_comp+qDTM+neighborID,data=self_pruning_standard),
+  lm(HeightBase~HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighborID,
      data=self_pruning_standard)
 )
 
 m_base_height_light<-psem(
-  lm(HeightTop~ShadeTol+focalID,data=self_pruning_standard),
-  lm(CR_average~ShadeTol+focalID,data=self_pruning_standard),
+  lm(HeightTop~shade_tol+focal_acq,data=self_pruning_standard),
+  lm(CR_average~shade_tol+focal_acq,data=self_pruning_standard),
   lm(pseudoLAI_top~HeightTop,data=self_pruning_standard),
-  lm(pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID,
+  lm(pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq,
      data=self_pruning_standard),
-  lm(HeightBase~pseudoLAI_base+HeightTop+CR_average+ShadeTol+focalID,
+  lm(HeightBase~pseudoLAI_base+HeightTop+CR_average+shade_tol+focal_acq,
      data=self_pruning_standard)
 )
 
 m_base_height_light_neighbor<-psem(
-  lm(neighbor.comp~qDTM+neighborID,data=self_pruning_standard),
-  lm(HeightTop~neighbor.comp+ShadeTol+focalID,data=self_pruning_standard),
-  lm(CR_average~neighbor.comp+ShadeTol+focalID,data=self_pruning_standard),
-  lm(pseudoLAI_top~HeightTop+neighbor.comp+qDTM+neighborID,data=self_pruning_standard),
-  lm(pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+ShadeTol+focalID+neighbor.comp+qDTM+neighborID,
+  lm(neighbor_comp~qDTM+neighborID,data=self_pruning_standard),
+  lm(HeightTop~neighbor_comp+shade_tol+focal_acq,data=self_pruning_standard),
+  lm(CR_average~neighbor_comp+shade_tol+focal_acq,data=self_pruning_standard),
+  lm(pseudoLAI_top~HeightTop+neighbor_comp+qDTM+neighborID,data=self_pruning_standard),
+  lm(pseudoLAI_base~HeightTop+pseudoLAI_top+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighborID,
      data=self_pruning_standard),
-  lm(HeightBase~pseudoLAI_base+HeightTop+CR_average+ShadeTol+focalID+neighbor.comp+qDTM+neighborID,
+  lm(HeightBase~pseudoLAI_base+HeightTop+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighborID,
      data=self_pruning_standard)
 )
