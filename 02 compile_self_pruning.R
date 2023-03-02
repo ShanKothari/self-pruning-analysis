@@ -2,6 +2,10 @@ setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 
 library(ggplot2)
 
+## to do:
+## also calculate non-abundance-weighted values
+## of neighbor function/diversity?
+
 ## read and clean data
 self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA.csv")
 self_pruning<-self_pruning[-which(self_pruning$Species==""),]
@@ -15,7 +19,7 @@ self_pruning$UniqueTreeID<-paste(self_pruning$Block,
 ## produce new self-pruning and predictor variables
 self_pruning$CrownDepth<-self_pruning$HeightTop-self_pruning$HeightBase
 
-## it's missing from one tree, which presumably died
+## basal diameter is missing from one tree, which presumably died
 ## between Jon's measurements and the fall survey
 self_pruning$BasalDiam<-as.numeric(self_pruning$BasalDiam)
 self_pruning$BasalArea<-(self_pruning$BasalDiam/2)^2*pi
