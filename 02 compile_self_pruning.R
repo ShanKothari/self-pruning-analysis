@@ -24,9 +24,11 @@ self_pruning$CrownDepth<-self_pruning$HeightTop-self_pruning$HeightBase
 self_pruning$BasalDiam<-as.numeric(self_pruning$BasalDiam)
 self_pruning$BasalArea<-(self_pruning$BasalDiam/2)^2*pi
 
-## 'pseudo-LAI' style vars have better statistical properties
-self_pruning$pseudoLAI_top<- -log(self_pruning$LightTop../100)
-self_pruning$pseudoLAI_base<- -log(self_pruning$LightBase./100)
+## log-transforming light shows better statistical properties
+## and is justifiable via the Beer-Lambert idealization of
+## canopy light transmission
+self_pruning$logLightTop<-log(self_pruning$LightTop../100)
+self_pruning$logLightBase<-log(self_pruning$LightBase./100)
 
 ## attach neighborhood-level variables
 neighbor.data<-read.csv("IDENTMontrealData/neighborhood_vars.csv")
@@ -41,8 +43,10 @@ self_pruning$neighbor_acq<- -neighbor.data$neighbor.FI1[match(self_pruning$Uniqu
 self_pruning$neighbor_comp<-neighbor.data$comp.index[match(self_pruning$UniqueTreeID,
                                                            neighbor.data$UniqueTreeID)]
 
-## one BEPA has a neighborhood competition index more than twice the others
-## so we can eliminate it as a potential outlier
+## one BEPA has a neighborhood competition index more than twice
+## the others so we can eliminate it as a potential outlier
+## NOTE: this code will probably need changing based on
+## recalculation of NCI
 neighbor_outlier<-which(self_pruning$neighbor_comp>60000)
 self_pruning<-self_pruning[-neighbor_outlier,]
 
@@ -67,8 +71,8 @@ write.csv(self_pruning,"SelfPruningData/self_pruning_processed.csv",row.names=F)
 ## although I currently do not
 self_pruning_mono<-self_pruning[self_pruning$nbsp==1,]
 
-## species means of crown base pseudo-LAI
-self_pruning_sub<-self_pruning[,c("pseudoLAI_base","Species","HeightTop","BasalArea")]
+## species means of crown base light
+self_pruning_sub<-self_pruning[,c("logLightBase","Species","HeightTop","BasalArea")]
 species_means<-aggregate(.~Species,data = self_pruning_sub,
                          FUN = mean,na.rm = T)
 species_means$shade_tol<-traits$Shade.tolerance[match(species_means$Species,
@@ -76,23 +80,23 @@ species_means$shade_tol<-traits$Shade.tolerance[match(species_means$Species,
 species_means$focal_acq<- -trait.pca.scores$PC1[match(species_means$Species,
                                                   trait.pca.scores$X)]
 
-summary(lm(pseudoLAI_base~shade_tol+focal_acq,data=species_means))
+summary(lm(logLightBase~shade_tol+focal_acq,data=species_means))
 
 ggplot(data=species_means,
-       aes(x=shade_tol,y=-pseudoLAI_base,label=Species))+
+       aes(x=shade_tol,y=logLightBase,label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Shade tolerance",
-       y="-Pseudo-LAI above crown base")
+       y="log(light fraction) above crown base")
 
 ggplot(data=species_means,
-       aes(x=focal_acq,y=-pseudoLAI_base,label=Species))+
+       aes(x=focal_acq,y=logLightBase,label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Focal tree acquisitiveness",
-       y="-Pseudo-LAI above crown base")
+       y="log(light fraction) above crown base")
 
 ########################################
 ## examining simple relationships within the bivariate data
@@ -103,23 +107,23 @@ ggplot(data=species_means,
 ## and the light at the crown base increases a bit?
 ggplot(self_pruning,
        aes(x=FDis,
-           y=-pseudoLAI_base,
+           y=logLightBase,
            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)
 
 ggplot(self_pruning,
        aes(x=neighbor_acq,
-           y=-1*pseudoLAI_base,
+           y=logLightBase,
            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+theme(text=element_text(size=20))+
   labs(x="Neighbor acquisitiveness",
-       y="-Pseudo-LAI at crown base")
+       y="log(light fraction) at crown base")
 
 ## this plot is kind of odd and visually striking...
 ggplot(self_pruning,
        aes(x=HeightTop,
-           y=-1*pseudoLAI_base,
+           y=logLightBase,
            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)
 
@@ -128,7 +132,7 @@ self_pruning_sp<-split(self_pruning,
                        f = self_pruning$Species)
 light_height_slopes<-unlist(lapply(self_pruning_sp,
                                    function(x) {
-                                     reg<-lm(pseudoLAI_base~HeightTop,data=x)
+                                     reg<-lm(logLightBase~HeightTop,data=x)
                                      return(reg$coefficients[2])
                                    }))
 species_means$light_height_slope<-light_height_slopes[match(species_means$Species,
@@ -136,7 +140,7 @@ species_means$light_height_slope<-light_height_slopes[match(species_means$Specie
 
 light_neighbor_acq_slopes<-unlist(lapply(self_pruning_sp,
                                    function(x) {
-                                     reg<-lm(pseudoLAI_base~neighbor_acq,data=x)
+                                     reg<-lm(logLightBase~neighbor_acq,data=x)
                                      return(reg$coefficients[2])
                                    }))
 species_means$light_neighbor_acq_slope<-light_neighbor_acq_slopes[match(species_means$Species,
@@ -149,7 +153,7 @@ ggplot(data=species_means,
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Functional identity",
-       y="Change in pseudo-LAI at base with top height")
+       y="Change in log(LF) at base with top height")
 
 ggplot(data=species_means,
        aes(x=focal_acq,y=-light_neighbor_acq_slope,label=Species))+
@@ -157,7 +161,7 @@ ggplot(data=species_means,
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Functional identity",
-       y="Change in pseudo-LAI at base with neighbor identity")
+       y="Change in log(LF) at base with neighbor identity")
 
 ##########
 ## to do: check that neighbor comp is calculated correctly
