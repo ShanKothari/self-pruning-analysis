@@ -170,6 +170,7 @@ neighbor.df<-matrify(neighbor.agg)
 neighbor.df.centerless<-matrify(neighbor.agg.centerless)
 ## make sure columns are in the same order
 neighbor.df.centerless<-neighbor.df.centerless[,colnames(neighbor.df)]
+## the number of species in the immediate neighborhood
 neighbor.richness<-rowSums(neighbor.df>0)
 
 #########################################
