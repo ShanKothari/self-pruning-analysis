@@ -7,6 +7,17 @@ library(ggplot2)
 library(lme4)
 library(lmerTest)
 
+####################################
+## to dos
+
+## try adding functional distance of neighbors from focal individual to SEMs
+## consider non-abundance weighted metrics?
+
+## have HeightTop and CR_average be underpinned by a latent variable
+## have HeightTop and CR_average both be predicted by neighbor acquisitiveness
+
+###################################
+
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 
 ## drop dead trees
@@ -16,9 +27,10 @@ self_pruning<-self_pruning[-which(toupper(self_pruning$TreeID)=="DEAD"),]
 self_pruning_standard<-self_pruning
 standard_cols<-c("neighbor_comp","FDis","qDTM",
                  "neighbor_richness","HeightTop",
-                 "HeightBase","CR_average","shade_tol",
+                 "HeightBase","CrownDepth","CR_average",
                  "logLightBase","logLightTop",
-                 "focal_acq","neighbor_acq")
+                 "shade_tol","focal_acq","neighbor_acq",
+                 "focal_fundist","focal_fundist_abs")
 self_pruning_standard[,standard_cols]<-scale(self_pruning_standard[,standard_cols])
 
 ## try some exploratory multivariate analyses I guess
