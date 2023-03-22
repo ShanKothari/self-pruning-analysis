@@ -161,34 +161,31 @@ ggplot(self_pruning,
            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)
 
-## pull out the species-specific slopes
-self_pruning_sp<-split(self_pruning,
-                       f = self_pruning$Species)
+## pull out the species-specific slopes from mixed-effects models
+light_NCI_sp<-lmer(logLightBase~neighbor_comp*Species+(1|Plot),data=self_pruning)
+species_means$light_NCI_slope<-rep(fixef(light_NCI_sp)[2],12)+c(0,fixef(light_NCI_sp)[14:24])
+anova(light_NCI_sp)
 
-light_height_slopes<-unlist(lapply(self_pruning_sp,
-                                   function(x) {
-                                     reg<-lmer(logLightBase~HeightTop+(1|Plot),data=x)
-                                     return(fixef(reg)[2])
-                                   }))
-species_means$light_height_slope<-light_height_slopes[match(species_means$Species,
-                                                            names(self_pruning_sp))]
+light_height_sp<-lmer(logLightBase~HeightTop*Species+(1|Plot),data=self_pruning)
+species_means$light_height_slope<-rep(fixef(light_height_sp)[2],12)+c(0,fixef(light_height_sp)[14:24])
+anova(light_height_sp)
 
-light_neighbor_acq_slopes<-unlist(lapply(self_pruning_sp,
-                                         function(x) {
-                                           reg<-lmer(logLightBase~neighbor_acq+(1|Plot),data=x)
-                                           return(fixef(reg)[2])
-                                         }))
-species_means$light_neighbor_acq_slope<-light_neighbor_acq_slopes[match(species_means$Species,
-                                                                        names(self_pruning_sp))]
+light_neighbor_acq_sp<-lmer(logLightBase~neighbor_acq*Species+(1|Plot),data=self_pruning)
+species_means$light_neighbor_acq_slope<-rep(fixef(light_neighbor_acq_sp)[2],12)+c(0,fixef(light_neighbor_acq_sp)[14:24])
+anova(light_neighbor_acq_sp)
 
 ## which species may show some evidence of correlative inhibition?
-light_toplight_slopes<-unlist(lapply(self_pruning_sp,
-                                     function(x) {
-                                       reg<-lmer(logLightBase~logLightTop+(1|Plot),data=x)
-                                       return(fixef(reg)[2])
-                                     }))
-species_means$light_toplight_slope<-light_toplight_slopes[match(species_means$Species,
-                                                                names(self_pruning_sp))]
+light_toplight_sp<-lmer(logLightBase~logLightTop*Species+(1|Plot),data=self_pruning)
+species_means$light_toplight_slope<-rep(fixef(light_toplight_sp)[2],12)+c(0,fixef(light_toplight_sp)[14:24])
+anova(light_toplight_sp)
+
+ggplot(data=species_means,
+       aes(x=focal_acq,y=light_NCI_slope,label=Species))+
+  geom_smooth(method="lm")+geom_text()+
+  theme_bw()+
+  theme(text=element_text(size=15))+
+  labs(x="Functional identity",
+       y="Change in log(LF) at base with NCI")
 
 ggplot(data=species_means,
        aes(x=focal_acq,y=light_height_slope,label=Species))+
