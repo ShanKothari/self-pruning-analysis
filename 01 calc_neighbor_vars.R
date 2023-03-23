@@ -121,25 +121,6 @@ neighbor.comp<-lapply(neighbor.area,
 neighbor.comp.df<-data.frame(comp.index=unlist(lapply(neighbor.comp, function(x) x$comp.index)),
                              Hegyi.index=unlist(lapply(neighbor.comp, function(x) x$Hegyi.index)))
 
-#######################################
-## calculate index of functional identity from trait data
-
-## read in trait data and subset by relevant species and traits
-traits<-read.csv("TraitData/IDENT_TRAIT_DATABASE_2020-10-20.csv")
-traits<-traits[-which(traits$SpeciesCode %in% del_species),]
-traits<-traits[,c("SpeciesCode","LDMC","Leaf_N_mass","SLA..all.include.",
-                  "SRL..fine.root.","SSD...WD")]
-
-## match trait row order to columns of community matrix
-traits<-traits[match(colnames(neighbor.df),traits$SpeciesCode),]
-rownames(traits)<-as.character(traits$SpeciesCode)
-traits$SpeciesCode<-NULL
-
-## do PCA of traits
-trait.pca<-prcomp(traits,scale. = T)
-trait.pca.scores<-trait.pca$x
-write.csv(trait.pca.scores,"TraitData/trait_pca_scores.csv")
-
 ###########################################
 ## get community data into the right format(s)
 ## for calculating functional diversity
@@ -172,6 +153,25 @@ neighbor.df.centerless<-matrify(neighbor.agg.centerless)
 neighbor.df.centerless<-neighbor.df.centerless[,colnames(neighbor.df)]
 ## the number of species in the immediate neighborhood
 neighbor.richness<-rowSums(neighbor.df>0)
+
+#######################################
+## calculate index of functional identity from trait data
+
+## read in trait data and subset by relevant species and traits
+traits<-read.csv("TraitData/IDENT_TRAIT_DATABASE_2020-10-20.csv")
+traits<-traits[-which(traits$SpeciesCode %in% del_species),]
+traits<-traits[,c("SpeciesCode","LDMC","Leaf_N_mass","SLA..all.include.",
+                  "SRL..fine.root.","SSD...WD")]
+
+## match trait row order to columns of community matrix
+traits<-traits[match(colnames(neighbor.df),traits$SpeciesCode),]
+rownames(traits)<-as.character(traits$SpeciesCode)
+traits$SpeciesCode<-NULL
+
+## do PCA of traits
+trait.pca<-prcomp(traits,scale. = T)
+trait.pca.scores<-trait.pca$x
+write.csv(trait.pca.scores,"TraitData/trait_pca_scores.csv")
 
 #########################################
 ## calculate functional diversity
