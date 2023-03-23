@@ -80,6 +80,8 @@ species_means$shade_tol<-traits$Shade.tolerance[match(species_means$Species,
                                                      traits$SpeciesCode)]
 species_means$focal_acq<- -trait.pca.scores$PC1[match(species_means$Species,
                                                   trait.pca.scores$X)]
+species_means$PC2<- -trait.pca.scores$PC2[match(species_means$Species,
+                                                trait.pca.scores$X)]
 
 summary(lm(logLightBase~shade_tol+focal_acq,data=species_means))
 
@@ -102,6 +104,16 @@ summary(lm(logLightBase~shade_tol+focal_acq,data=species_means))
 #   labs(x="Focal tree acquisitiveness",
 #        y="log(light fraction) at crown base")
 # dev.off()
+
+## PC2 from the trait data (mostly LDMC)
+## is actually correlated with shade tolerance!
+ggplot(data=species_means,
+       aes(x=shade_tol,y=PC2,label=Species))+
+  geom_smooth(method="lm")+geom_text()+
+  theme_bw()+
+  theme(text=element_text(size=15))+
+  labs(x="Shade tolerance",
+       y="PC2")
 
 ########################################
 ## examining simple relationships within the bivariate data
@@ -164,7 +176,7 @@ ggplot(self_pruning,
 ## pull out the species-specific slopes from mixed-effects models
 light_NCI_sp<-lmer(logLightBase~neighbor_comp*Species+(1|Plot),data=self_pruning)
 species_means$light_NCI_slope<-rep(fixef(light_NCI_sp)[2],12)+c(0,fixef(light_NCI_sp)[14:24])
-anova(light_NCI_sp)
+anova(light_NCI_sp, type="I")
 
 light_height_sp<-lmer(logLightBase~HeightTop*Species+(1|Plot),data=self_pruning)
 species_means$light_height_slope<-rep(fixef(light_height_sp)[2],12)+c(0,fixef(light_height_sp)[14:24])
