@@ -1,6 +1,7 @@
 setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 
 library(ggplot2)
+library(ggpubr)
 
 ## to do:
 ## also calculate non-abundance-weighted values
@@ -130,7 +131,7 @@ ggplot(self_pruning,
            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=20))
+  theme(text=element_text(size=15))
 
 NCI_plastic<-ggplot(self_pruning,
                     aes(x=neighbor_comp,
@@ -138,9 +139,10 @@ NCI_plastic<-ggplot(self_pruning,
                         color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=20))+
+  theme(text=element_text(size=15))+
   labs(x="NCI",
-       y="log(light fraction) at crown base")
+       y="log(light fraction) at crown base")+
+  guides(color=F)
 
 neighbor_acq_plastic<-ggplot(self_pruning,
                              aes(x=neighbor_acq,
@@ -148,13 +150,14 @@ neighbor_acq_plastic<-ggplot(self_pruning,
                                  color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=20))+
+  theme(text=element_text(size=15))+
   labs(x="Neighbor acquisitiveness",
-       y="log(light fraction) at crown base")
+       y="log(light fraction) at crown base")+
+  guides(color=F)
 
-png("Images/lfbase_nacq_ind.png",width=7,height=5,units="in",res=150)
-neighbor_acq_plastic
-dev.off()
+# png("Images/lfbase_nacq_ind.png",width=7,height=5,units="in",res=150)
+# neighbor_acq_plastic
+# dev.off()
 
 ggplot(self_pruning,
        aes(x=focal_fundist_abs,
@@ -162,9 +165,10 @@ ggplot(self_pruning,
            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=20))+
+  theme(text=element_text(size=15))+
   labs(x="Functional distance from neighbors",
-       y="log(light fraction) at crown base")
+       y="log(light fraction) at crown base")+
+  guides(color=F)
 
 ## test of correlative inhibition:
 ## we should expect a positive slope here
@@ -174,7 +178,7 @@ light_top_plastic<-ggplot(self_pruning,
                               color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=20))+
+  theme(text=element_text(size=15))+
   labs(x="log(light fraction) at crown top",
        y="log(light fraction) at crown base")
 
@@ -185,9 +189,10 @@ height_plastic<-ggplot(self_pruning,
                            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=20))+
+  theme(text=element_text(size=15))+
   labs(x="Tree height",
-       y="log(light fraction) at crown base")
+       y="log(light fraction) at crown base")+
+  guides(color=F)
 
 ## pull out the species-specific slopes from mixed-effects models
 light_NCI_sp<-lmer(logLightBase~neighbor_comp*Species+(1|Plot),data=self_pruning)
@@ -207,37 +212,57 @@ light_toplight_sp<-lmer(logLightBase~logLightTop*Species+(1|Plot),data=self_prun
 species_means$light_toplight_slope<-rep(fixef(light_toplight_sp)[2],12)+c(0,fixef(light_toplight_sp)[14:24])
 anova(light_toplight_sp, type="III")
 
-ggplot(data=species_means,
-       aes(x=focal_acq,y=light_NCI_slope,label=Species))+
+NCI_slopes<-ggplot(data=species_means,
+                   aes(x=focal_acq,
+                       y=light_NCI_slope,
+                       label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Functional identity",
        y="Change in log(LF) at base with NCI")
 
-ggplot(data=species_means,
-       aes(x=focal_acq,y=light_height_slope,label=Species))+
+height_slopes<-ggplot(data=species_means,
+                      aes(x=focal_acq,
+                          y=light_height_slope,
+                          label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Functional identity",
        y="Change in log(LF) at base with top height")
 
-ggplot(data=species_means,
-       aes(x=focal_acq,y=light_neighbor_acq_slope,label=Species))+
+neighbor_acq_slopes<-ggplot(data=species_means,
+                            aes(x=focal_acq,
+                                y=light_neighbor_acq_slope,
+                                label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Functional identity",
        y="Change in log(LF) at base with neighbor acquisitiveness")
 
-ggplot(data=species_means,
-       aes(x=focal_acq,y=light_toplight_slope,label=Species))+
+light_top_slopes<-ggplot(data=species_means,
+                         aes(x=focal_acq,
+                             y=light_toplight_slope,
+                             label=Species))+
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Functional identity",
        y="Change in log(LF) at base with log(LF) at top")
+
+
+plot_compile<-ggpubr::ggarrange(neighbor_acq_plastic,neighbor_acq_slopes,
+                                NCI_plastic,NCI_slopes,
+                                height_plastic,height_slopes,
+                                light_top_plastic,light_top_slopes,
+                                ncol=2,nrow=4,
+                                common.legend=T,legend="bottom")
+
+pdf("Images/Fig2XX.pdf",height=16,width=8)
+plot_compile
+dev.off()
 
 ##########
 ## to do: check that neighbor comp is calculated correctly
