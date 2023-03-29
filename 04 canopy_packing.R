@@ -1,5 +1,7 @@
 setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 
+library(mosaic)
+
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 ## get indicators of species composition
 self_pruning_list<-split(self_pruning,f = self_pruning$Plot)
@@ -63,18 +65,79 @@ crown_OY_plot<-aggregate(crown_vol_agg$OY,
 ######################################
 ## canopy complementarity sandbox
 
-CRmax_1<-50
-CB_1<-500
-CD_1<-200
-Bj_1<-0.3
+## long, narrow crown
+tree1<-list(CRmax=50,
+            CB=500,
+            CD=200,
+            Bj=0.3)
 
-CRmax_2<-100
-CB_2<-600
-CD_2<-50
-Bj_2<-0.3
+## shallow, wide crown
+tree2<-list(CRmax=100,
+            CB=600,
+            CD=50,
+            Bj=0.3)
 
-h_intersect<-function(h) CRmax_1*((CD_1+CB_1-h)/CD_1)^Bj_1-CRmax_2*((CD_2+CB_2-h)/CD_2)^Bj_2
-uniroot(h_intersect,lower=max(CB_1,CB_2),upper=min(CB_1+CD_1,CB_2+CD_2))
+tree3<-list(CRmax=50,
+            CB=400,
+            CD=100,
+            Bj=0.4)
+
+tree4<-list(CRmax=75,
+            CB=600,
+            CD=100,
+            Bj=0.2)
+
+calculate_overlap<-function(treeA,treeB){
+  CRmax_A<-treeA$CRmax
+  CB_A<-treeA$CB
+  CD_A<-treeA$CD
+  Bj_A<-treeA$Bj
+  H_A<-CB_A+CD_A
+  
+  CRmax_B<-treeB$CRmax
+  CB_B<-treeB$CB
+  CD_B<-treeB$CD
+  Bj_B<-treeB$Bj
+  H_B<-CB_B+CD_B
+  
+  max_base<-max(CB_A,CB_B)
+  min_height<-min(H_A,H_B)
+  
+  ## if one tree's crown is entirely below the other
+  ## return 0
+  if(H_A<=CB_B | H_B<=CB_A){
+    return(0)
+  }
+  
+  ## otherwise we have to solve for whether their
+  ## crown traces intersect
+  trace_int<-as.numeric(findZeros(CRmax_A*((CD_A+CB_A-h)/CD_A)^Bj_A-CRmax_B*((CD_B+CB_B-h)/CD_B)^Bj_B~h,
+                                 xlim=c(max_base,min_height)))
+  
+  if(length(trace_int)==0){
+    ## integrate the tree with the shorter height from
+    ## its top to the higher of the two crown bases
+  }
+  
+  if(length(trace_int)==1){
+    if(isTRUE(all.equal(H_A,H_B)) &&
+       isTRUE(all.equal(H_A,trace_int))){
+      ## integrate the tree with the smaller CRmax from the
+      ## higher of the two crown bases to the top
+    }
+    else{
+      ## integrate the shorter tree from min_height to the
+      ## intersection point
+      ## then the taller tree from the intersection point
+      ## to max_base
+    }
+  }
+  
+  if(length(trace_int)>1){
+    stop("multiple intersections of crown trace")
+  }
+
+}
 
 ####################################
 ## calculate canopy complementarity
