@@ -129,7 +129,7 @@ calculate_overlap<-function(two_trees){
   ## otherwise we have to solve for whether (and at what height)
   ## their crown traces intersect
   trace_int<-as.numeric(findZeros(CRmax_A*((CD_A+CB_A-h)/CD_A)^Bj_A-CRmax_B*((CD_B+CB_B-h)/CD_B)^Bj_B~h,
-                                 xlim=c(max_base,min_height)))
+                                  xlim=c(max_base,min_height)))
   
   ## if they don't intersect...
   if(length(trace_int)==0){
@@ -179,12 +179,40 @@ calculate_overlap<-function(two_trees){
       return(full_integral)
     }
     ## if the one intersection point is not at the top...
+    
     else{
       ## integrate the shorter tree from min_height to the
       ## intersection point
+      
+      shorter_tree<-two_trees[[which.min(c(H_A,H_B))]]
+      taller_tree<-two_trees[[which.max(c(H_A,H_B))]]
+      
+      CRmax_s<-shorter_tree$CRmax
+      CB_s<-shorter_tree$CB
+      CD_s<-shorter_tree$CD
+      Bj_s<-shorter_tree$Bj
+      
+      constant_frac_s<- (-pi*CRmax_s^2*CD_s)/(2*Bj_s+1)
+      integral_s<-((CB_s+CD_s-min_height)/CD_s)^(2*Bj_s+1)-((CB_s+CD_s-trace_int)/CD_s)^(2*Bj_s+1)
+      
+      full_integral_s<-constant_frac_s*integral_s
+      
       ## then the taller tree from the intersection point
       ## to max_base
-      return("TBD")
+      
+      CRmax_t<-taller_tree$CRmax
+      CB_t<-taller_tree$CB
+      CD_t<-taller_tree$CD
+      Bj_t<-taller_tree$Bj
+      
+      constant_frac_t<- (-pi*CRmax_t^2*CD_t)/(2*Bj_t+1)
+      integral_t<-((CB_t+CD_t-trace_int)/CD_t)^(2*Bj_t+1)-((CB_t+CD_t-max_base)/CD_t)^(2*Bj_t+1)
+      
+      full_integral_t<-constant_frac_t*integral_t
+      
+      full_integral<-full_integral_t+full_integral_s
+      
+      return(full_integral)
     }
   }
   
