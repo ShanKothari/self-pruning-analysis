@@ -65,6 +65,10 @@ crown_OY_plot<-aggregate(crown_vol_agg$OY,
 ######################################
 ## canopy complementarity sandbox
 
+## for the purpose of checking,
+## note that Bj = 0.5 is parabolic (V = 2/3*pi*r^2*h)
+## and Bj = 1 is conical (V = 1/3*pi*r^2*h)
+
 ## long, narrow crown
 tree1<-list(CRmax=50,
             CB=500,
@@ -82,21 +86,25 @@ tree3<-list(CRmax=50,
             CD=100,
             Bj=0.4)
 
-tree4<-list(CRmax=75,
-            CB=600,
-            CD=100,
-            Bj=0.2)
+tree4<-list(CRmax=30,
+            CB=550,
+            CD=50,
+            Bj=0.5)
 
 ## to see the effects
 x1<-with(tree1,CB:(CB+CD))
 y1<-with(tree1,CRmax*((CD+CB-x1)/CD)^Bj)
 plot(y1~x1,ylim=c(0,tree1$CRmax))
 
-x2<-with(tree1,CB:(CB+CD))
-y2<-with(tree1,CRmax*((CD+CB-x2)/CD)^0.5)
+x2<-with(tree4,CB:(CB+CD))
+y2<-with(tree4,CRmax*((CD+CB-x2)/CD)^Bj)
 points(y2~x2,col="red")
 
-calculate_overlap<-function(treeA,treeB){
+calculate_overlap<-function(two_trees){
+  
+  treeA<-two_trees[[1]]
+  treeB<-two_trees[[2]]
+  
   CRmax_A<-treeA$CRmax
   CB_A<-treeA$CB
   CD_A<-treeA$CD
@@ -127,6 +135,18 @@ calculate_overlap<-function(treeA,treeB){
   if(length(trace_int)==0){
     ## integrate the tree with the shorter height from
     ## its top to the higher of the two crown bases
+    
+    shorter_tree<-two_trees[[which.min(c(H_A,H_B))]]
+    CRmax_s<-shorter_tree$CRmax
+    CB_s<-shorter_tree$CB
+    CD_s<-shorter_tree$CD
+    Bj_s<-shorter_tree$Bj
+    
+    constant_frac<- (-pi*CRmax_s^2*CD_s)/(2*Bj_s+1)
+    integral<-((CB_s+CD_s-min_height)/CD_s)^(2*Bj_s+1)-((CB_s+CD_s-max_base)/CD_s)^(2*Bj_s+1)
+    
+    full_integral<-constant_frac*integral
+    return(full_integral)
   }
   
   if(length(trace_int)==1){
@@ -134,10 +154,29 @@ calculate_overlap<-function(treeA,treeB){
     ## due to equal heights...
     if(isTRUE(all.equal(H_A,H_B)) &&
        isTRUE(all.equal(H_A,trace_int))){
-      ## integrate the tree with the smaller CRmax from the
+      
+      ## the narrower tree is the one with the smaller CRmax;
+      ## if the CRmax values are also equal, pick the one with
+      ## the larger Bj 
+      if(isTRUE(all.equal(CRmax_A,CRmax_B))){
+        narrower_tree<-two_trees[[which.max(c(Bj_A,Bj_B))]]
+      } else {
+        narrower_tree<-two_trees[[which.min(c(CRmax_A,CRmax_B))]]
+      }
+      
+      ## integrate the narrower tree from the
       ## higher of the two crown bases to the top
       
-      ## if CRmax is also equal, pick the one with the larger Bj 
+      CRmax_n<-narrower_tree$CRmax
+      CB_n<-narrower_tree$CB
+      CD_n<-narrower_tree$CD
+      Bj_n<-narrower_tree$Bj
+      
+      constant_frac<- (-pi*CRmax_n^2*CD_n)/(2*Bj_n+1)
+      integral<-((CB_n+CD_n-min_height)/CD_n)^(2*Bj_n+1)-((CB_n+CD_n-max_base)/CD_n)^(2*Bj_n+1)
+      
+      full_integral<-constant_frac*integral
+      return(full_integral)
     }
     ## if the one intersection point is not at the top...
     else{
@@ -145,6 +184,7 @@ calculate_overlap<-function(treeA,treeB){
       ## intersection point
       ## then the taller tree from the intersection point
       ## to max_base
+      return("TBD")
     }
   }
   
@@ -153,6 +193,8 @@ calculate_overlap<-function(treeA,treeB){
   }
 
 }
+
+sample<-list(tree1,tree4)
 
 ####################################
 ## calculate canopy complementarity
