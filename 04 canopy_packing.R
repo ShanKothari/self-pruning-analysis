@@ -87,6 +87,15 @@ tree4<-list(CRmax=75,
             CD=100,
             Bj=0.2)
 
+## to see the effects
+x1<-with(tree1,CB:(CB+CD))
+y1<-with(tree1,CRmax*((CD+CB-x1)/CD)^Bj)
+plot(y1~x1,ylim=c(0,tree1$CRmax))
+
+x2<-with(tree1,CB:(CB+CD))
+y2<-with(tree1,CRmax*((CD+CB-x2)/CD)^0.5)
+points(y2~x2,col="red")
+
 calculate_overlap<-function(treeA,treeB){
   CRmax_A<-treeA$CRmax
   CB_A<-treeA$CB
@@ -105,26 +114,32 @@ calculate_overlap<-function(treeA,treeB){
   
   ## if one tree's crown is entirely below the other
   ## return 0
-  if(H_A<=CB_B | H_B<=CB_A){
+  if(min_height < max_base){
     return(0)
   }
   
-  ## otherwise we have to solve for whether their
-  ## crown traces intersect
+  ## otherwise we have to solve for whether (and at what height)
+  ## their crown traces intersect
   trace_int<-as.numeric(findZeros(CRmax_A*((CD_A+CB_A-h)/CD_A)^Bj_A-CRmax_B*((CD_B+CB_B-h)/CD_B)^Bj_B~h,
                                  xlim=c(max_base,min_height)))
   
+  ## if they don't intersect...
   if(length(trace_int)==0){
     ## integrate the tree with the shorter height from
     ## its top to the higher of the two crown bases
   }
   
   if(length(trace_int)==1){
+    ## if the one intersection point is at the top
+    ## due to equal heights...
     if(isTRUE(all.equal(H_A,H_B)) &&
        isTRUE(all.equal(H_A,trace_int))){
       ## integrate the tree with the smaller CRmax from the
       ## higher of the two crown bases to the top
+      
+      ## if CRmax is also equal, pick the one with the larger Bj 
     }
+    ## if the one intersection point is not at the top...
     else{
       ## integrate the shorter tree from min_height to the
       ## intersection point
