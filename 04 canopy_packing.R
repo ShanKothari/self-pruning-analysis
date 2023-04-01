@@ -129,7 +129,7 @@ calculate_CCI<-function(two_trees){
                  vol2=vol2,
                  overlap_3D=overlap_3D,
                  CCI_3D=CCI_3D)
-  return(CCI_list)
+  return(unlist(CCI_list))
 }
 
 self_pruning_alive<-self_pruning[-which(is.na(self_pruning$CrownDepth)),]

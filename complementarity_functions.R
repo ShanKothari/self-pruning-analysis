@@ -27,7 +27,9 @@ calculate_2D_overlap<-function(two_trees){
   ## otherwise we have to solve for whether (and at what height)
   ## their crown traces intersect
   trace_int<-unlist(findZeros(CRmax_A*((CD_A+CB_A-h)/CD_A)^Bj_A-CRmax_B*((CD_B+CB_B-h)/CD_B)^Bj_B~h,
-                              xlim=c(max_base,min_height)))
+                              xlim=c(max_base,min_height),
+                              CRmax_A=CRmax_A,CD_A=CD_A,CB_A=CB_A,Bj_A=Bj_A,
+                              CRmax_B=CRmax_B,CD_B=CD_B,CB_B=CB_B,Bj_B=Bj_B))
   
   ## if they don't intersect...
   if(length(trace_int)==0){
@@ -244,7 +246,9 @@ calculate_3D_overlap<-function(two_trees){
   ## otherwise we have to solve for whether (and at what height)
   ## their crown traces intersect
   trace_int<-unlist(findZeros(CRmax_A*((CD_A+CB_A-h)/CD_A)^Bj_A-CRmax_B*((CD_B+CB_B-h)/CD_B)^Bj_B~h,
-                              xlim=c(max_base,min_height)))
+                              xlim=c(max_base,min_height),
+                              CRmax_A=CRmax_A,CD_A=CD_A,CB_A=CB_A,Bj_A=Bj_A,
+                              CRmax_B=CRmax_B,CD_B=CD_B,CB_B=CB_B,Bj_B=Bj_B))
   
   ## if they don't intersect...
   if(length(trace_int)==0){
