@@ -20,7 +20,7 @@ calculate_2D_overlap<-function(two_trees){
   
   ## if one tree's crown is entirely below the other
   ## return 0
-  if(min_height < max_base){
+  if(min_height <= max_base){
     return(0)
   }
   
@@ -239,7 +239,7 @@ calculate_3D_overlap<-function(two_trees){
   
   ## if one tree's crown is entirely below the other
   ## return 0
-  if(min_height < max_base){
+  if(min_height <= max_base){
     return(0)
   }
   
