@@ -132,6 +132,7 @@ calculate_CCI<-function(two_trees){
   return(unlist(CCI_list))
 }
 
+## testing
 self_pruning_alive<-self_pruning[-which(is.na(self_pruning$CrownDepth)),]
 
 tree_samp_1<-self_pruning_alive[sample(1:nrow(self_pruning_alive),1),]
@@ -147,3 +148,42 @@ tree_list<-list(list(CRmax=tree_samp_1$CR_average,
                      Bj=tree_samp_2$Bj))
 
 calculate_CCI(tree_list)
+
+#####################################
+## applying the complementarity function
+
+t(combn(1:4,2))
+
+self_pruning_mod<-self_pruning
+self_pruning_mod$CR_average[is.na(self_pruning_mod$CR_average)]<-0
+self_pruning_mod$CrownDepth[is.na(self_pruning_mod$CrownDepth)]<-0
+self_pruning_mod$HeightBase[is.na(self_pruning_mod$HeightBase)]<-0
+
+self_pruning_split<-split(self_pruning_mod,f = ~Block+Plot)
+
+plot_CCI<-function(plot) {
+  
+  ## get every pair of trees sampled in the plot
+  plot_combos<-t(combn(1:nrow(plot),2))
+  
+  tree_pair_CCI<-list()
+  ## loop through pairs and calculate CCI for each one
+  for(i in 1:nrow(plot_combos)){
+    tree_a<-list(CRmax=plot$CR_average[plot_combos[i,1]],
+                 CB=plot$HeightBase[plot_combos[i,1]],
+                 CD=plot$CrownDepth[plot_combos[i,1]],
+                 Bj=plot$Bj[plot_combos[i,1]])
+    tree_b<-list(CRmax=plot$CR_average[plot_combos[i,2]],
+                 CB=plot$HeightBase[plot_combos[i,2]],
+                 CD=plot$CrownDepth[plot_combos[i,2]],
+                 Bj=plot$Bj[plot_combos[i,2]])
+    tree_list<-list(tree_a,tree_b)
+    tree_pair_CCI[[i]]<-calculate_CCI(tree_list)
+  }
+  
+  tree_pair_df<-do.call(rbind.data.frame, tree_pair_CCI)
+  colnames(tree_pair_df)<-names(tree_pair_CCI[[i]])
+  return(tree_pair_df)
+}
+
+all_plot_CCI<-lapply(self_pruning_split,plot_CCI)
