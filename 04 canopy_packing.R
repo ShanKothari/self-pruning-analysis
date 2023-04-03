@@ -118,17 +118,22 @@ calculate_CCI<-function(two_trees){
   
   perc_overlap_2D<-overlap_2D/(area1+area2)
   CCI_2D<-1-2*perc_overlap_2D
+  CCI_min_2D<-overlap_2D/min(c(area1,area2))
   
   perc_overlap_3D<-overlap_3D/(vol1+vol2)
   CCI_3D<-1-2*perc_overlap_3D
+  CCI_min_3D<-overlap_3D/min(c(vol1,vol2))
+  
   CCI_list<-list(area1=area1,
                  area2=area2,
                  overlap_2D=overlap_2D,
                  CCI_2D=CCI_2D,
+                 CCI_min_2D=CCI_min_2D,
                  vol1=vol1,
                  vol2=vol2,
                  overlap_3D=overlap_3D,
-                 CCI_3D=CCI_3D)
+                 CCI_3D=CCI_3D,
+                 CCI_min_3D=CCI_min_3D)
   return(unlist(CCI_list))
 }
 
