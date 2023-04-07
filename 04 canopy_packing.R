@@ -107,6 +107,9 @@ x2<-with(tree4,CB:(CB+CD))
 y2<-with(tree4,CRmax*((CD+CB-x2)/CD)^Bj)
 points(y2~x2,col="red")
 
+######################################
+## function to calculate complementarity
+
 calculate_CCI<-function(two_trees){
   area1<-crown_area(CD=two_trees[[1]]$CD,CR=two_trees[[1]]$CRmax,beta=two_trees[[1]]$Bj)
   area2<-crown_area(CD=two_trees[[2]]$CD,CR=two_trees[[2]]$CRmax,beta=two_trees[[2]]$Bj)
@@ -116,13 +119,11 @@ calculate_CCI<-function(two_trees){
   vol2<-crown_vol(CD=two_trees[[2]]$CD,CR=two_trees[[2]]$CRmax,beta=two_trees[[2]]$Bj)
   overlap_3D<-calculate_3D_overlap(two_trees)
   
-  perc_overlap_2D<-overlap_2D/(area1+area2)
-  CCI_2D<-1-2*perc_overlap_2D
-  CCI_min_2D<-overlap_2D/min(c(area1,area2))
+  CCI_2D<-1-2*overlap_2D/(area1+area2)
+  CCI_min_2D<-1-overlap_2D/min(c(area1,area2))
   
-  perc_overlap_3D<-overlap_3D/(vol1+vol2)
-  CCI_3D<-1-2*perc_overlap_3D
-  CCI_min_3D<-overlap_3D/min(c(vol1,vol2))
+  CCI_3D<-1-2*overlap_3D/(vol1+vol2)
+  CCI_min_3D<-1-overlap_3D/min(c(vol1,vol2))
   
   CCI_list<-list(area1=area1,
                  area2=area2,
@@ -156,8 +157,6 @@ calculate_CCI(tree_list)
 
 #####################################
 ## applying the complementarity function
-
-t(combn(1:4,2))
 
 self_pruning_mod<-self_pruning
 self_pruning_mod$CR_average[is.na(self_pruning_mod$CR_average)]<-0
