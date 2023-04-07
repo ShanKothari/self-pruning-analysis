@@ -125,7 +125,28 @@ calculate_CCI<-function(two_trees){
   CCI_3D<-1-2*overlap_3D/(vol1+vol2)
   CCI_min_3D<-1-overlap_3D/min(c(vol1,vol2))
   
-  CCI_list<-list(area1=area1,
+  ## here I make a crucial assumption that I need to revisit:
+  ## if both trees are dead, return NA for all CCI metric
+  ## if one tree is dead, return 1 (perfect complementarity)
+  
+  ## how many trees are dead?
+  dead_trees<-sum(c(isTRUE(all.equal(area1,0)),
+                    isTRUE(all.equal(area2,0))))
+  
+  if(dead_trees==2){
+    CCI_2D<-NA
+    CCI_min_2D<-NA
+    CCI_3D<-NA
+    CCI_min_3D<-NA
+  }
+  
+  if(dead_trees==1){
+    CCI_min_2D<-1
+    CCI_min_3D<-1
+  }
+  
+  CCI_list<-list(dead_trees=dead_trees,
+                 area1=area1,
                  area2=area2,
                  overlap_2D=overlap_2D,
                  CCI_2D=CCI_2D,
@@ -157,6 +178,7 @@ calculate_CCI(tree_list)
 
 #####################################
 ## applying the complementarity function
+## to calculate the complementarity of each plot
 
 self_pruning_mod<-self_pruning
 self_pruning_mod$CR_average[is.na(self_pruning_mod$CR_average)]<-0
@@ -190,4 +212,37 @@ plot_CCI<-function(plot) {
   return(tree_pair_df)
 }
 
-all_plot_CCI<-lapply(self_pruning_split,plot_CCI)
+plot_CCI_all<-lapply(self_pruning_split,plot_CCI)
+plot_CCI_means<-lapply(plot_CCI_all,colMeans,na.rm=T)
+plot_CCI_mean_df<-data.frame(do.call(rbind,plot_CCI_means))
+plot_CCI_mean_df$plot<-rownames(plot_CCI_mean_df)
+
+############################################
+## applying the complementarity function
+## to calculate the simulated complementarity
+## of each plot mixture plot by drawing
+## monoculture trees
+
+plot_simulator<-function(plot,full_df) {
+
+  ## simulate a new plot by combining the monocultures
+  ## of the constituent species in the same block
+  
+  ## extract features of the mixture plot
+  plot_comp<-unique(plot$Species)
+  plot_block<-plot$Block[1]
+  
+  ## this works since monoculture plots have a name
+  ## that is simply the one species they contain
+  sim_plot<-self_pruning[which(full_df$Block==plot_block & full_df$Plot %in% plot_comp),]
+  return(sim_plot)
+  
+}
+
+split_nbsp<-unlist(lapply(self_pruning_split,function(x) x$nbsp[1]))
+self_pruning_mix<-self_pruning_split[-which(split_nbsp==1)]
+
+self_pruning_sim<-lapply(self_pruning_mix,
+                         plot_simulator,
+                         full_df=self_pruning)
+plot_CCI_sim<-lapply(self_pruning_sim,plot_CCI)
