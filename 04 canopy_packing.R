@@ -187,6 +187,12 @@ self_pruning_mod$HeightBase[is.na(self_pruning_mod$HeightBase)]<-0
 
 self_pruning_split<-split(self_pruning_mod,f = ~Block+Plot)
 
+## this procedure needs to be updated because mortalities
+## in the self-pruning data are not "true" mortalities
+## so we need a sampling procedure to determine whether
+## to select dead trees based on actual mortality rates
+## in the full community survey
+
 plot_CCI<-function(plot) {
   
   ## get every pair of trees sampled in the plot
@@ -222,6 +228,12 @@ plot_CCI_mean_df$plot<-rownames(plot_CCI_mean_df)
 ## to calculate the simulated complementarity
 ## of each plot mixture plot by drawing
 ## monoculture trees
+
+## this procedure needs to be updated because mortalities
+## in the self-pruning data are not "true" mortalities
+## so we need a sampling procedure to determine whether
+## to select dead trees based on actual mortality rates
+## in the full community survey
 
 plot_simulator<-function(plot,full_df) {
 

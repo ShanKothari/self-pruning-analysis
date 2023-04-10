@@ -7,6 +7,9 @@ library(ggpubr)
 ## also calculate non-abundance-weighted values
 ## of neighbor function/diversity?
 
+## and functional diversity/heterogeneity in shade tolerance
+## at the plot scale
+
 ## read and clean data
 self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA.csv")
 self_pruning<-self_pruning[-which(self_pruning$Species==""),]
