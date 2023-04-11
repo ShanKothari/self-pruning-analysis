@@ -14,6 +14,7 @@ library(ggpubr)
 self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA.csv")
 self_pruning<-self_pruning[-which(self_pruning$Species==""),]
 self_pruning$Plot<-gsub(" ","",self_pruning$Plot)
+self_pruning$UniquePlot<-paste(self_pruning$Block,self_pruning$Plot,sep=".")
 self_pruning$UniqueTreeID<-paste(self_pruning$Block,
                                  self_pruning$Plot,
                                  self_pruning$TreeID,
@@ -87,7 +88,7 @@ species_means$focal_acq<- -trait.pca.scores$PC1[match(species_means$Species,
 species_means$PC2<- -trait.pca.scores$PC2[match(species_means$Species,
                                                 trait.pca.scores$X)]
 
-summary(lm(logLightBase~shade_tol+focal_acq,data=species_means))
+# summary(lm(logLightBase~shade_tol+focal_acq,data=species_means))
 
 # png("Images/lfbase_st_sp.png",width=5,height=5,units="in",res=150)
 # ggplot(data=species_means,
@@ -198,21 +199,21 @@ height_plastic<-ggplot(self_pruning,
   guides(color=F)
 
 ## pull out the species-specific slopes from mixed-effects models
-light_NCI_sp<-lmer(logLightBase~neighbor_comp*Species+(1|Plot),data=self_pruning)
-species_means$light_NCI_slope<-rep(fixef(light_NCI_sp)[2],12)+c(0,fixef(light_NCI_sp)[14:24])
+light_NCI_sp<-lmer(logLightBase~neighbor_comp*Species+Block+(1|Plot),data=self_pruning)
+species_means$light_NCI_slope<-rep(fixef(light_NCI_sp)[2],12)+c(0,fixef(light_NCI_sp)[15:25])
 anova(light_NCI_sp, type="III")
 
-light_height_sp<-lmer(logLightBase~HeightTop*Species+(1|Plot),data=self_pruning)
-species_means$light_height_slope<-rep(fixef(light_height_sp)[2],12)+c(0,fixef(light_height_sp)[14:24])
+light_height_sp<-lmer(logLightBase~HeightTop*Species+Block+(1|Plot),data=self_pruning)
+species_means$light_height_slope<-rep(fixef(light_height_sp)[2],12)+c(0,fixef(light_height_sp)[15:25])
 anova(light_height_sp, type="III")
 
-light_neighbor_acq_sp<-lmer(logLightBase~neighbor_acq*Species+(1|Plot),data=self_pruning)
-species_means$light_neighbor_acq_slope<-rep(fixef(light_neighbor_acq_sp)[2],12)+c(0,fixef(light_neighbor_acq_sp)[14:24])
+light_neighbor_acq_sp<-lmer(logLightBase~neighbor_acq*Species+Block+(1|Plot),data=self_pruning)
+species_means$light_neighbor_acq_slope<-rep(fixef(light_neighbor_acq_sp)[2],12)+c(0,fixef(light_neighbor_acq_sp)[15:25])
 anova(light_neighbor_acq_sp, type="III")
 
 ## which species may show some evidence of correlative inhibition?
-light_toplight_sp<-lmer(logLightBase~logLightTop*Species+(1|Plot),data=self_pruning)
-species_means$light_toplight_slope<-rep(fixef(light_toplight_sp)[2],12)+c(0,fixef(light_toplight_sp)[14:24])
+light_toplight_sp<-lmer(logLightBase~logLightTop*Species+Block+(1|Plot),data=self_pruning)
+species_means$light_toplight_slope<-rep(fixef(light_toplight_sp)[2],12)+c(0,fixef(light_toplight_sp)[15:25])
 anova(light_toplight_sp, type="III")
 
 NCI_slopes<-ggplot(data=species_means,
