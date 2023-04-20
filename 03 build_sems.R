@@ -58,9 +58,8 @@ summary(lmer(logLightBase~HeightTop+neighbor_comp+qDTM+neighbor_acq+(1|Species),
 m_base_light_lavaan<-'
 neighbor_comp~1
 HeightTop~1+shade_tol+focal_acq
-CR_average~1+shade_tol+focal_acq
 logLightTop~1+HeightTop
-logLightBase~1+HeightTop+logLightTop+CR_average+shade_tol+focal_acq
+logLightBase~1+HeightTop+logLightTop+shade_tol+focal_acq
 '
 fit_base_light <- sem(m_base_light_lavaan,
                       data=self_pruning_standard)
@@ -68,9 +67,8 @@ fit_base_light <- sem(m_base_light_lavaan,
 m_base_light_neighbor_lavaan<-'
 neighbor_comp~1+qDTM+neighbor_acq
 HeightTop~1+neighbor_comp+shade_tol+focal_acq
-CR_average~1+neighbor_comp+shade_tol+focal_acq
 logLightTop~1+HeightTop+neighbor_comp+qDTM+neighbor_acq
-logLightBase~1+HeightTop+logLightTop+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq
+logLightBase~1+HeightTop+logLightTop+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq
 '
 fit_base_light_neighbor <- sem(m_base_light_neighbor_lavaan,
                                data=self_pruning_standard)
@@ -78,9 +76,8 @@ fit_base_light_neighbor <- sem(m_base_light_neighbor_lavaan,
 m_base_height_lavaan<-'
 neighbor_comp~1
 HeightTop~1+shade_tol+focal_acq
-CR_average~1+shade_tol+focal_acq
 logLightTop~1+HeightTop
-HeightBase~1+HeightTop+logLightTop+CR_average+shade_tol+focal_acq
+HeightBase~1+HeightTop+logLightTop+shade_tol+focal_acq
 '
 fit_base_height <- sem(m_base_height_lavaan,
                        data=self_pruning_standard)
@@ -88,9 +85,8 @@ fit_base_height <- sem(m_base_height_lavaan,
 m_base_height_neighbor_lavaan<-'
 neighbor_comp~1+qDTM+neighbor_acq
 HeightTop~1+neighbor_comp+shade_tol+focal_acq
-CR_average~1+neighbor_comp+shade_tol+focal_acq
 logLightTop~1+HeightTop+neighbor_comp+qDTM+neighbor_acq
-HeightBase~1+HeightTop+logLightTop+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq
+HeightBase~1+HeightTop+logLightTop+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq
 '
 fit_base_height_neighbor <- sem(m_base_height_neighbor_lavaan,
                                 data=self_pruning_standard)
@@ -104,33 +100,29 @@ fit_base_height_neighbor <- sem(m_base_height_neighbor_lavaan,
 m_base_light_lavaan_sp<-'
 neighbor_comp~1
 HeightTop~1
-CR_average~1
 logLightTop~1+HeightTop
-logLightBase~1+HeightTop+logLightTop+CR_average
+logLightBase~1+HeightTop+logLightTop
 '
 
 m_base_light_neighbor_lavaan_sp<-'
 neighbor_comp~1+qDTM+neighbor_acq
 HeightTop~1+neighbor_comp
-CR_average~1+neighbor_comp
 logLightTop~1+HeightTop+neighbor_comp+qDTM+neighbor_acq
-logLightBase~1+HeightTop+logLightTop+CR_average+neighbor_comp+qDTM+neighbor_acq
+logLightBase~1+HeightTop+logLightTop+neighbor_comp+qDTM+neighbor_acq
 '
 
 m_base_height_lavaan_sp<-'
 neighbor_comp~1
 HeightTop~1
-CR_average~1
 logLightTop~1+HeightTop
-HeightBase~1+HeightTop+logLightTop+CR_average
+HeightBase~1+HeightTop+logLightTop
 '
 
 m_base_height_neighbor_lavaan_sp<-'
 neighbor_comp~1+qDTM+neighbor_acq
 HeightTop~1+neighbor_comp
-CR_average~1+neighbor_comp
 logLightTop~1+HeightTop+neighbor_comp+qDTM+neighbor_acq
-HeightBase~1+HeightTop+logLightTop+CR_average+neighbor_comp+qDTM+neighbor_acq
+HeightBase~1+HeightTop+logLightTop+neighbor_comp+qDTM+neighbor_acq
 '
 
 ## split up data
@@ -174,34 +166,30 @@ tmp<-predict(m_base_height_light_neighbor,newdata=sp_standard_nodiv)
 
 m_base_light<-psem(
   lm(HeightTop~shade_tol+focal_acq,data=self_pruning_standard),
-  lm(CR_average~shade_tol+focal_acq,data=self_pruning_standard),
   lm(logLightTop~HeightTop,data=self_pruning_standard),
-  lm(logLightBase~HeightTop+logLightTop+CR_average+shade_tol+focal_acq,
+  lm(logLightBase~HeightTop+logLightTop+shade_tol+focal_acq,
      data=self_pruning_standard)
 )
 
 m_base_light_neighbor<-psem(
   lmer(neighbor_comp~qDTM+neighbor_acq+(1|UniquePlot),data=self_pruning_standard),
   lmer(HeightTop~neighbor_comp+shade_tol+focal_acq+(1|UniquePlot),data=self_pruning_standard),
-  lmer(CR_average~neighbor_comp+shade_tol+focal_acq+(1|UniquePlot),data=self_pruning_standard),
   lmer(logLightTop~HeightTop+neighbor_comp+qDTM+neighbor_acq+(1|UniquePlot),data=self_pruning_standard),
-  lmer(logLightBase~HeightTop+logLightTop+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq+(1|UniquePlot),
+  lmer(logLightBase~HeightTop+logLightTop+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq+(1|UniquePlot),
      data=self_pruning_standard)
 )
 
 m_base_height<-psem(
   lm(HeightTop~shade_tol+focal_acq,data=self_pruning_standard),
-  lm(CR_average~shade_tol+focal_acq,data=self_pruning_standard),
   lm(logLightTop~HeightTop,data=self_pruning_standard),
-  lm(HeightBase~HeightTop+logLightTop+CR_average+shade_tol+focal_acq,data=self_pruning_standard)
+  lm(HeightBase~HeightTop+logLightTop+shade_tol+focal_acq,data=self_pruning_standard)
 )
 
 m_base_height_neighbor<-psem(
   lm(neighbor_comp~qDTM+neighbor_acq,data=self_pruning_standard),
   lm(HeightTop~neighbor_comp+shade_tol+focal_acq,data=self_pruning_standard),
-  lm(CR_average~neighbor_comp+shade_tol+focal_acq,data=self_pruning_standard),
   lm(logLightTop~HeightTop+neighbor_comp+qDTM+neighbor_acq,data=self_pruning_standard),
-  lm(HeightBase~HeightTop+logLightTop+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq,
+  lm(HeightBase~HeightTop+logLightTop+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq,
      data=self_pruning_standard)
 )
 
@@ -209,9 +197,8 @@ m_base_height_neighbor<-psem(
 m_base_light_neighbor_multi<-psem(
   lm(neighbor_comp~qDTM+neighbor_acq,data=self_pruning_standard),
   lm(HeightTop~neighbor_comp,data=self_pruning_standard),
-  lm(CR_average~neighbor_comp,data=self_pruning_standard),
   lm(logLightTop~HeightTop+neighbor_comp+qDTM+neighbor_acq,data=self_pruning_standard),
-  lm(logLightBase~HeightTop+logLightTop+CR_average+neighbor_comp+qDTM+neighbor_acq,
+  lm(logLightBase~HeightTop+logLightTop+neighbor_comp+qDTM+neighbor_acq,
        data=self_pruning_standard)
 )
 
