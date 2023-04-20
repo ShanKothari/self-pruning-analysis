@@ -16,6 +16,8 @@ library(lmerTest)
 ## have HeightTop and CR_average be underpinned by a latent variable
 ## have HeightTop and CR_average both be predicted by neighbor acquisitiveness
 
+## maybe use crown depth as the main "position" variable in SEMs?
+
 ###################################
 
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
@@ -30,7 +32,7 @@ standard_cols<-c("neighbor_comp","FDis","qDTM",
                  "HeightBase","CrownDepth","CR_average",
                  "logLightBase","logLightTop",
                  "shade_tol","focal_acq","neighbor_acq",
-                 "focal_fundist","focal_fundist_abs")
+                 "acq_dist","acq_dist_abs")
 self_pruning_standard[,standard_cols]<-scale(self_pruning_standard[,standard_cols])
 
 ## try some exploratory multivariate analyses I guess
@@ -43,8 +45,9 @@ summary(lm(AliveCrown....total.height.~HeightTop+neighbor_comp+qDTM+neighbor_acq
 summary(lm(CrownDepth~HeightTop+neighbor_comp+qDTM+neighbor_acq+shade_tol+focal_acq,
            data=self_pruning_standard))
 
+## decide between ML and REML
 summary(lmer(logLightBase~HeightTop+neighbor_comp+qDTM+neighbor_acq+(1|Species),
-           data=self_pruning_standard))
+           data=self_pruning_standard,REML=F))
 
 ########################################
 ## local estimation of SEMs
@@ -170,6 +173,15 @@ fit_base_light_neighbor_sp_list<-lapply(self_pruning_standard_sp,
 data.frame(no.neighbor=unlist(lapply(fit_base_light_sp_list,AIC)),
            neighbor=unlist(lapply(fit_base_light_neighbor_sp_list,AIC)))
 
+## using multigroup analysis instead
+fit_base_light_multi<-sem(m_base_light_lavaan_sp,
+                          data=self_pruning_standard,
+                          group="Species")
+
+fit_base_light_neighbor_multi<-sem(m_base_light_neighbor_lavaan_sp,
+                          data=self_pruning_standard,
+                          group="Species")
+
 ########################################
 ## sandbox for simulations to predict on alternate data
 ## to evaluate whether functional variation predicts shade tolerance
@@ -191,11 +203,11 @@ m_base_light<-psem(
 )
 
 m_base_light_neighbor<-psem(
-  lm(neighbor_comp~qDTM+neighbor_acq,data=self_pruning_standard),
-  lm(HeightTop~neighbor_comp+shade_tol+focal_acq,data=self_pruning_standard),
-  lm(CR_average~neighbor_comp+shade_tol+focal_acq,data=self_pruning_standard),
-  lm(logLightTop~HeightTop+neighbor_comp+qDTM+neighbor_acq,data=self_pruning_standard),
-  lm(logLightBase~HeightTop+logLightTop+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq,
+  lmer(neighbor_comp~qDTM+neighbor_acq+(1|UniquePlot),data=self_pruning_standard),
+  lmer(HeightTop~neighbor_comp+shade_tol+focal_acq+(1|UniquePlot),data=self_pruning_standard),
+  lmer(CR_average~neighbor_comp+shade_tol+focal_acq+(1|UniquePlot),data=self_pruning_standard),
+  lmer(logLightTop~HeightTop+neighbor_comp+qDTM+neighbor_acq+(1|UniquePlot),data=self_pruning_standard),
+  lmer(logLightBase~HeightTop+logLightTop+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq+(1|UniquePlot),
      data=self_pruning_standard)
 )
 
@@ -235,3 +247,16 @@ m_base_height_light_neighbor<-psem(
   lm(HeightBase~logLightBase+HeightTop+CR_average+shade_tol+focal_acq+neighbor_comp+qDTM+neighbor_acq,
      data=self_pruning_standard)
 )
+
+## try multigroup SEM?
+m_base_light_neighbor_multi<-psem(
+  lm(neighbor_comp~qDTM+neighbor_acq,data=self_pruning_standard),
+  lm(HeightTop~neighbor_comp,data=self_pruning_standard),
+  lm(CR_average~neighbor_comp,data=self_pruning_standard),
+  lm(logLightTop~HeightTop+neighbor_comp+qDTM+neighbor_acq,data=self_pruning_standard),
+  lm(logLightBase~HeightTop+logLightTop+CR_average+neighbor_comp+qDTM+neighbor_acq,
+       data=self_pruning_standard)
+)
+
+summary(m_base_light_neighbor_multi)
+tmp<-multigroup(m_base_light_neighbor_multi,group = "Species")
