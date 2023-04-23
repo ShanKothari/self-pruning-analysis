@@ -6,9 +6,11 @@ library(ggpubr)
 ## to do:
 ## also calculate non-abundance-weighted values
 ## of neighbor function/diversity?
-
+##
 ## and functional diversity/heterogeneity in shade tolerance
 ## at the plot scale
+##
+## check that neighbor comp is calculated correctly
 
 ## read and clean data
 self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA.csv")
@@ -65,8 +67,8 @@ self_pruning$shade_tol<-traits$Shade.tolerance[match(self_pruning$Species,
 trait.pca.scores<-read.csv("TraitData/trait_pca_scores.csv")
 self_pruning$focal_acq<- -trait.pca.scores$PC1[match(self_pruning$Species,
                                                      trait.pca.scores$X)]
-self_pruning$focal_fundist<- self_pruning$focal_acq-self_pruning$neighbor_acq
-self_pruning$focal_fundist_abs<- abs(self_pruning$focal_fundist)
+self_pruning$acq_dist<- self_pruning$focal_acq-self_pruning$neighbor_acq
+self_pruning$acq_dist_abs<- abs(self_pruning$acq_dist)
 
 # write.csv(self_pruning,"SelfPruningData/self_pruning_processed.csv",row.names=F)
 
@@ -164,7 +166,7 @@ neighbor_acq_plastic<-ggplot(self_pruning,
 # dev.off()
 
 ggplot(self_pruning,
-       aes(x=focal_fundist_abs,
+       aes(x=acq_dist_abs,
            y=logLightBase,
            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
@@ -198,7 +200,54 @@ height_plastic<-ggplot(self_pruning,
        y="log(light fraction) at crown base")+
   guides(color=F)
 
+## relationships with crown depth
+
+NCI_plastic_CD<-ggplot(self_pruning,
+                    aes(x=neighbor_comp,
+                        y=CrownDepth,
+                        color=Species))+
+  geom_point()+geom_smooth(method="lm",se=F)+
+  theme_bw()+
+  theme(text=element_text(size=15))+
+  labs(x="NCI",
+       y="Crown depth (cm)")+
+  guides(color=F)
+
+neighbor_acq_plastic_CD<-ggplot(self_pruning,
+                                aes(x=neighbor_acq,
+                                    y=CrownDepth,
+                                    color=Species))+
+  geom_point()+geom_smooth(method="lm",se=F)+
+  theme_bw()+
+  theme(text=element_text(size=15))+
+  labs(x="Neighbor acquisitiveness",
+       y="Crown depth (cm)")+
+  guides(color=F)
+
+light_top_plastic_CD<-ggplot(self_pruning,
+                          aes(x=logLightTop,
+                              y=CrownDepth,
+                              color=Species))+
+  geom_point()+geom_smooth(method="lm",se=F)+
+  theme_bw()+
+  theme(text=element_text(size=15))+
+  labs(x="log(light fraction) at crown top",
+       y="Crown depth (cm)")
+
+height_plastic_CD<-ggplot(self_pruning,
+                       aes(x=HeightTop,
+                           y=CrownDepth,
+                           color=Species))+
+  geom_point()+geom_smooth(method="lm",se=F)+
+  theme_bw()+
+  theme(text=element_text(size=15))+
+  labs(x="Tree height",
+       y="Crown depth (cm)")+
+  guides(color=F)
+
+################################################
 ## pull out the species-specific slopes from mixed-effects models
+
 light_NCI_sp<-lmer(logLightBase~neighbor_comp*Species+Block+(1|Plot),data=self_pruning)
 species_means$light_NCI_slope<-rep(fixef(light_NCI_sp)[2],12)+c(0,fixef(light_NCI_sp)[15:25])
 anova(light_NCI_sp, type="III")
@@ -267,6 +316,3 @@ plot_compile<-ggpubr::ggarrange(neighbor_acq_plastic,neighbor_acq_slopes,
 pdf("Images/Fig2XX.pdf",height=16,width=8)
 plot_compile
 dev.off()
-
-##########
-## to do: check that neighbor comp is calculated correctly
