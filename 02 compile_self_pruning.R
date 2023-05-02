@@ -197,7 +197,7 @@ neighbor_acq_plastic<-ggplot(self_pruning,
   theme(text=element_text(size=15))+
   labs(x="Neighbor acquisitiveness",
        y="log(light fraction) at crown base")+
-  guides(color=F)
+  guides(color="none")
 
 # png("Images/lfbase_nacq_ind.png",width=7,height=5,units="in",res=150)
 # neighbor_acq_plastic
@@ -212,7 +212,7 @@ ggplot(self_pruning,
   theme(text=element_text(size=15))+
   labs(x="Functional distance from neighbors",
        y="log(light fraction) at crown base")+
-  guides(color=F)
+  guides(color="none")
 
 ## test of correlative inhibition:
 ## we should expect a positive slope here
@@ -236,7 +236,7 @@ height_plastic<-ggplot(self_pruning,
   theme(text=element_text(size=15))+
   labs(x="Tree height",
        y="log(light fraction) at crown base")+
-  guides(color=F)
+  guides(color="none")
 
 ## relationships with crown depth
 
@@ -249,7 +249,7 @@ NCI_plastic_CD<-ggplot(self_pruning,
   theme(text=element_text(size=15))+
   labs(x="NCI",
        y="Crown depth (cm)")+
-  guides(color=F)
+  guides(color="none")
 
 neighbor_acq_plastic_CD<-ggplot(self_pruning,
                                 aes(x=neighbor_acq,
@@ -260,7 +260,7 @@ neighbor_acq_plastic_CD<-ggplot(self_pruning,
   theme(text=element_text(size=15))+
   labs(x="Neighbor acquisitiveness",
        y="Crown depth (cm)")+
-  guides(color=F)
+  guides(color="none")
 
 light_top_plastic_CD<-ggplot(self_pruning,
                           aes(x=logLightTop,
@@ -281,7 +281,7 @@ height_plastic_CD<-ggplot(self_pruning,
   theme(text=element_text(size=15))+
   labs(x="Tree height",
        y="Crown depth (cm)")+
-  guides(color=F)
+  guides(color="none")
 
 ################################################
 ## pull out the species-specific slopes from mixed-effects models
