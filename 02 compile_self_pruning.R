@@ -12,6 +12,8 @@ library(lme4)
 ## at the plot scale
 ##
 ## check that neighbor comp is calculated correctly
+##
+## use solar zenith angle to modify Lbase and Ltop
 
 ## read and clean data
 self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA_TimeINFO.csv")
@@ -125,7 +127,7 @@ lfbase_st_sp<-ggplot(data=species_means,
   coord_cartesian(ylim=c(-6.5,-2.5))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
-  labs(x=expression(paste("Tol\u00e9rance \u00e0 l'ombre")),
+  labs(x="Tol\u00e9rance \u00e0 l'ombre",
        y=expression(paste("log (",italic(L[base]),")")))
   # labs(x="Shade tolerance",
   #      y="log(light fraction) at crown base")
@@ -143,7 +145,7 @@ lfbase_acq_sp<-ggplot(data=species_means,
   coord_cartesian(ylim=c(-6.5,-2.5))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
-  labs(x="Tendance acquisitive",
+  labs(x="Propension acquisitive",
        y=expression(paste("log (",italic(L[base]),")")))
   # labs(x="Focal tree acquisitiveness",
   #      y="log(light fraction) at crown base")
@@ -183,9 +185,11 @@ NCI_plastic<-ggplot(self_pruning,
                         color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=15))+
-  labs(x="NCI",
-       y="log(light fraction) at crown base")+
+  theme(text=element_text(size=20))+
+  labs(x="Indice de comp\u00e9tition (NCI)",
+       y=expression(paste("log (",italic(L[base]),")")))+
+  # labs(x="NCI",
+  #      y="log(light fraction) at crown base")+
   guides(color="none")
 
 neighbor_acq_plastic<-ggplot(self_pruning,
