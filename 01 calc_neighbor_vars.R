@@ -170,7 +170,35 @@ traits$SpeciesCode<-NULL
 
 ## do PCA of traits
 trait.pca<-prcomp(traits,scale. = T)
-trait.pca.scores<-trait.pca$x
+trait.pca.scores<-data.frame(species = rownames(trait.pca$x),
+                             trait.pca$x)
+trait.pca.loadings<-data.frame(variables = rownames(trait.pca$rotation),
+                               trait.pca$rotation)
+trait.pca.loadings$variables<-c("LDMC","%N","SLA","SRL","WD")
+trait.pca.perc<-trait.pca$sdev^2/sum(trait.pca$sdev^2)*100
+
+trait.pca.plot<-ggplot(trait.pca.scores, 
+                       aes(x = -PC1, y = PC2)) +
+  geom_text(size = 3,label = trait.pca.scores$species) +
+  geom_segment(data = trait.pca.loadings,
+               aes(x = 0, y = 0, xend = -PC1*5, yend = PC2*5),
+               arrow = arrow(length = unit(1/2, "picas")),
+               color = "brown",size=1) +
+  annotate("text",
+           x = -trait.pca.loadings$PC1*5.5,
+           y = trait.pca.loadings$PC2*5.5,
+           label = trait.pca.loadings$variables,
+           color="brown")+
+  theme_bw()+theme(text=element_text(size=15),
+                   panel.background = element_rect(fill='transparent'), #transparent panel bg
+                   plot.background = element_rect(fill='transparent', color=NA))+
+  coord_fixed(ratio=trait.pca.perc[2]/trait.pca.perc[1])+
+  labs(x=paste("CP1 (",round(trait.pca.perc[1],1),"% variance)",sep=""),
+       y=paste("CP2 (",round(trait.pca.perc[2],1),"% variance)",sep=""))
+
+ggsave("Images/trait_pca_plot.png", trait.pca.plot, bg='transparent',
+       dpi=600,width=7,height=4)
+
 write.csv(trait.pca.scores,"TraitData/trait_pca_scores.csv")
 
 #########################################
