@@ -13,7 +13,7 @@ library(ggpubr)
 ## check that neighbor comp is calculated correctly
 
 ## read and clean data
-self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA.csv")
+self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA_TimeINFO.csv")
 self_pruning<-self_pruning[-which(self_pruning$Species==""),]
 self_pruning$Plot<-gsub(" ","",self_pruning$Plot)
 self_pruning$UniquePlot<-paste(self_pruning$Block,self_pruning$Plot,sep=".")
@@ -89,28 +89,65 @@ species_means$focal_acq<- -trait.pca.scores$PC1[match(species_means$Species,
                                                   trait.pca.scores$X)]
 species_means$PC2<- -trait.pca.scores$PC2[match(species_means$Species,
                                                 trait.pca.scores$X)]
+species_means$leaf_lifespan<- traits$LL[match(species_means$Species,
+                                              traits$SpeciesCode)]
+species_means$leaf_habit<-ifelse(species_means$leaf_lifespan>12,
+                                 yes = "Evergreen",
+                                 no = "Deciduous")
 
 # summary(lm(logLightBase~shade_tol+focal_acq,data=species_means))
 
-# png("Images/lfbase_st_sp.png",width=5,height=5,units="in",res=150)
-# ggplot(data=species_means,
-#        aes(x=shade_tol,y=logLightBase,label=Species))+
-#   geom_smooth(method="lm")+geom_text()+
-#   theme_bw()+
-#   theme(text=element_text(size=15))+
-#   labs(x="Shade tolerance",
-#        y="log(light fraction) at crown base")
-# dev.off()
+leaf_habit_cols<-c("Deciduous"="#a44f30",
+                   "Evergreen"="#60941a")
 
-# png("Images/lfbase_acq_sp.png",width=5,height=5,units="in",res=150)
-# ggplot(data=species_means,
-#        aes(x=focal_acq,y=logLightBase,label=Species))+
-#   geom_smooth(method="lm")+geom_text()+
-#   theme_bw()+
-#   theme(text=element_text(size=15))+
-#   labs(x="Focal tree acquisitiveness",
-#        y="log(light fraction) at crown base")
-# dev.off()
+lfbase_ll_sp<-ggplot(data=species_means,
+                     aes(x=log(leaf_lifespan),
+                         y=logLightBase,
+                         label=Species))+
+  geom_smooth(method="lm")+geom_text(size=5)+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  coord_cartesian(ylim=c(-6.5,-2.5))+
+ labs(x="log(leaf lifespan [months])",
+      y="log(light fraction) at crown base")
+ggsave(filename = "Images/lfbase_ll_sp_FR.png",plot = lfbase_st_sp,
+       width=6,height=5,units="in",dpi=600)
+
+lfbase_st_sp<-ggplot(data=species_means,
+                     aes(x=shade_tol,
+                         y=logLightBase,
+                         label=Species))+
+  geom_smooth(method="lm")+
+  geom_text(size=5,aes(color=leaf_habit))+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  coord_cartesian(ylim=c(-6.5,-2.5))+
+  guides(color="none")+
+  scale_color_manual(values = leaf_habit_cols)+
+  labs(x=expression(paste("Tol\u00e9rance \u00e0 l'ombre")),
+       y=expression(italic(L[base])))
+  # labs(x="Shade tolerance",
+  #      y="log(light fraction) at crown base")
+ggsave(filename = "Images/lfbase_st_sp_FR.png",plot = lfbase_st_sp,
+       width=6,height=5,units="in",dpi=600)
+
+lfbase_acq_sp<-ggplot(data=species_means,
+                      aes(x=focal_acq,
+                          y=logLightBase,
+                          label=Species))+
+  geom_smooth(method="lm")+
+  geom_text(size=5,aes(color=leaf_habit))+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  coord_cartesian(ylim=c(-6.5,-2.5))+
+  guides(color="none")+
+  scale_color_manual(values = leaf_habit_cols)+
+  labs(x="Tendance acquisitive",
+       y=expression(italic(L[base])))
+  # labs(x="Focal tree acquisitiveness",
+  #      y="log(light fraction) at crown base")
+ggsave(filename = "Images/lfbase_acq_sp_FR.png", plot = lfbase_acq_sp,
+       width=6,height=5,units="in",dpi=600)
 
 ## PC2 from the trait data (mostly LDMC)
 ## is actually correlated with shade tolerance!
