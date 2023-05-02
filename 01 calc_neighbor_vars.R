@@ -5,6 +5,7 @@ library(stringr)
 library(dplyr)
 library(labdsv)
 library(FD)
+library(ggplot2)
 
 DB_community<-read.csv("IDENTMontrealData/Inventory2018.csv")
 DB_community$Col<-str_sub(DB_community$Pos,1,1)

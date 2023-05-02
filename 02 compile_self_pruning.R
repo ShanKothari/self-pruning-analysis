@@ -2,6 +2,7 @@ setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 
 library(ggplot2)
 library(ggpubr)
+library(lme4)
 
 ## to do:
 ## also calculate non-abundance-weighted values
@@ -125,7 +126,7 @@ lfbase_st_sp<-ggplot(data=species_means,
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
   labs(x=expression(paste("Tol\u00e9rance \u00e0 l'ombre")),
-       y=expression(italic(L[base])))
+       y=expression(paste("log (",italic(L[base]),")")))
   # labs(x="Shade tolerance",
   #      y="log(light fraction) at crown base")
 ggsave(filename = "Images/lfbase_st_sp_FR.png",plot = lfbase_st_sp,
@@ -143,7 +144,7 @@ lfbase_acq_sp<-ggplot(data=species_means,
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
   labs(x="Tendance acquisitive",
-       y=expression(italic(L[base])))
+       y=expression(paste("log (",italic(L[base]),")")))
   # labs(x="Focal tree acquisitiveness",
   #      y="log(light fraction) at crown base")
 ggsave(filename = "Images/lfbase_acq_sp_FR.png", plot = lfbase_acq_sp,
@@ -185,7 +186,7 @@ NCI_plastic<-ggplot(self_pruning,
   theme(text=element_text(size=15))+
   labs(x="NCI",
        y="log(light fraction) at crown base")+
-  guides(color=F)
+  guides(color="none")
 
 neighbor_acq_plastic<-ggplot(self_pruning,
                              aes(x=neighbor_acq,
