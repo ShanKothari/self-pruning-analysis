@@ -7,8 +7,8 @@ traits<-read.csv("TraitData/IDENT_TRAIT_DATABASE_2020-10-20.csv")
 del_species<-c("ACPL","LADE","TICO","PIAB","PISY","QURO","PIOM","BELE","BEPE","PIMA")
 traits<-traits[-which(traits$SpeciesCode %in% del_species),]
 traits<-traits[,c("SpeciesCode","LL","LDMC","Leaf_N_mass","SLA..all.include.",
-                  "SRL..fine.root.","SSD...WD")]
-colnames(traits)<-c("SpeciesCode","LL","LDMC","N","SLA","SRL","WD")
+                  "SRL..fine.root.","SSD...WD","Shade.tolerance")]
+colnames(traits)<-c("SpeciesCode","LL","LDMC","N","SLA","SRL","WD","shade_tol")
 
 ## just extract whether species are deciduous or evergreen
 ## for plotting purposes (but not for the PCA)
@@ -17,7 +17,7 @@ leaf_habit<-ifelse(traits$LL>12,
                    no = "Deciduous")
 
 ## do scaled PCA of traits (except LL)
-traits_sub<-traits[,-which(colnames(traits) %in% c("SpeciesCode","LL"))]
+traits_sub<-traits[,-which(colnames(traits) %in% c("SpeciesCode","LL","shade_tol"))]
 rownames(traits_sub)<-traits$SpeciesCode
 trait_pca<-prcomp(traits_sub,scale. = T)
 

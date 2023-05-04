@@ -60,16 +60,14 @@ self_pruning$neighbor_comp<-neighbor.data$comp.index[match(self_pruning$UniqueTr
 neighbor_outlier<-which(self_pruning$neighbor_comp>60000)
 self_pruning<-self_pruning[-neighbor_outlier,]
 
-## read in traits to get shade tolerance
-traits<-read.csv("TraitData/IDENT_TRAIT_DATABASE_2020-10-20.csv")
-self_pruning$shade_tol<-traits$Shade.tolerance[match(self_pruning$Species,
-                                                    traits$SpeciesCode)]
+## read in trait data to get shade tolerance
+trait_summary<-read.csv("TraitData/trait_summary")
+self_pruning$shade_tol<-trait_summary$shade_tol[match(self_pruning$Species,
+                                                      trait_summary$SpeciesCode)]
 
-## read in trait PCA to get focal sp functional ID
-## focal tree identity of PC1
-trait.pca.scores<-read.csv("TraitData/trait_pca_scores.csv")
-self_pruning$focal_acq<- -trait.pca.scores$PC1[match(self_pruning$Species,
-                                                     trait.pca.scores$X)]
+## and get focal species functional ID (PC1)
+self_pruning$focal_acq<- -trait_summary$PC1[match(self_pruning$Species,
+                                                  trait_summary$SpeciesCode)]
 self_pruning$acq_dist<- self_pruning$focal_acq-self_pruning$neighbor_acq
 self_pruning$acq_dist_abs<- abs(self_pruning$acq_dist)
 
@@ -86,17 +84,16 @@ self_pruning_mono<-self_pruning[self_pruning$nbsp==1,]
 self_pruning_sub<-self_pruning[,c("logLightBase","Species","HeightTop","BasalArea")]
 species_means<-aggregate(.~Species,data = self_pruning_sub,
                          FUN = mean,na.rm = T)
-species_means$shade_tol<-traits$Shade.tolerance[match(species_means$Species,
-                                                     traits$SpeciesCode)]
-species_means$focal_acq<- -trait.pca.scores$PC1[match(species_means$Species,
-                                                  trait.pca.scores$X)]
-species_means$PC2<- -trait.pca.scores$PC2[match(species_means$Species,
-                                                trait.pca.scores$X)]
-species_means$leaf_lifespan<- traits$LL[match(species_means$Species,
-                                              traits$SpeciesCode)]
-species_means$leaf_habit<-ifelse(species_means$leaf_lifespan>12,
-                                 yes = "Evergreen",
-                                 no = "Deciduous")
+species_means$shade_tol<-trait_summary$shade_tol[match(species_means$Species,
+                                                       trait_summary$SpeciesCode)]
+species_means$focal_acq<- -trait_summary$PC1[match(species_means$Species,
+                                                   trait_summary$SpeciesCode)]
+species_means$PC2<- -trait_summary$PC2[match(species_means$Species,
+                                             trait_summary$SpeciesCode)]
+species_means$leaf_lifespan<- trait_summary$LL[match(species_means$Species,
+                                                     trait_summary$SpeciesCode)]
+species_means$leaf_habit<- trait_summary$leaf_habit[match(species_means$Species,
+                                                          trait_summary$SpeciesCode)]
 
 # summary(lm(logLightBase~shade_tol+focal_acq,data=species_means))
 
