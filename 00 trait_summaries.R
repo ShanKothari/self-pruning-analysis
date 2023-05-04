@@ -1,0 +1,63 @@
+setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning/")
+
+library(ggplot2)
+
+## read in trait data and subset by relevant species and traits
+traits<-read.csv("TraitData/IDENT_TRAIT_DATABASE_2020-10-20.csv")
+del_species<-c("ACPL","LADE","TICO","PIAB","PISY","QURO","PIOM","BELE","BEPE","PIMA")
+traits<-traits[-which(traits$SpeciesCode %in% del_species),]
+traits<-traits[,c("SpeciesCode","LL","LDMC","Leaf_N_mass","SLA..all.include.",
+                  "SRL..fine.root.","SSD...WD")]
+colnames(traits)<-c("SpeciesCode","LL","LDMC","N","SLA","SRL","WD")
+
+## just extract whether species are deciduous or evergreen
+## for plotting purposes (but not for the PCA)
+leaf_habit<-ifelse(traits$LL>12,
+                   yes = "Evergreen",
+                   no = "Deciduous")
+
+## do scaled PCA of traits (except LL)
+traits_sub<-traits[,-which(colnames(traits) %in% c("SpeciesCode","LL"))]
+rownames(traits_sub)<-traits$SpeciesCode
+trait_pca<-prcomp(traits_sub,scale. = T)
+
+## extract PCA scores and loadings
+trait_pca_scores<-data.frame(species = rownames(trait_pca$x),
+                             trait_pca$x,
+                             leaf_habit=leaf_habit)
+trait_pca_loadings<-data.frame(variables = rownames(trait_pca$rotation),
+                               trait_pca$rotation)
+trait_pca_loadings$variables<-c("LDMC","%N","SLA","SRL","WD")
+trait_pca_perc<-trait_pca$sdev^2/sum(trait_pca$sdev^2)*100
+
+leaf_habit_cols<-c("Deciduous"="#a44f30",
+                   "Evergreen"="#60941a")
+
+trait_pca_plot<-ggplot(trait_pca_scores, 
+                       aes(x = -PC1, y = PC2)) +
+  geom_text(size = 3.5,label = trait_pca_scores$species,
+            aes(color = trait_pca_scores$leaf_habit)) +
+  geom_segment(data = trait_pca_loadings,
+               aes(x = 0, y = 0, xend = -PC1*5, yend = PC2*5),
+               arrow = arrow(length = unit(1/2, "picas")),
+               size=1,color="#3366FF") +
+  annotate("text",
+           x = -trait_pca_loadings$PC1*5.5,
+           y = trait_pca_loadings$PC2*5.5,
+           label = trait_pca_loadings$variables,
+           color="#3366FF")+
+  theme_bw()+theme(text=element_text(size=15),
+                   panel.background = element_rect(fill='transparent'), #transparent panel bg
+                   plot.background = element_rect(fill='transparent', color=NA))+
+  coord_fixed(ratio=trait_pca_perc[2]/trait_pca_perc[1])+
+  guides(color="none")+
+  scale_color_manual(values = leaf_habit_cols)+
+  labs(x=paste("CP1 (",round(trait_pca_perc[1],1),"% variance)",sep=""),
+       y=paste("CP2 (",round(trait_pca_perc[2],1),"% variance)",sep=""))
+
+ggsave("Images/trait_pca_plot.png", trait_pca_plot, bg='transparent',
+       dpi=600,width=7,height=4)
+
+trait_summary<-cbind(traits,trait_pca_scores)
+trait_summary$species<-NULL
+write.csv(trait_summary,"TraitData/trait_summary.csv")

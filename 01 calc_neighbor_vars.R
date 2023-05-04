@@ -159,70 +159,11 @@ neighbor.df.centerless<-neighbor.df.centerless[,colnames(neighbor.df)]
 ## the number of species in the immediate neighborhood
 neighbor.richness<-rowSums(neighbor.df>0)
 
-#######################################
-## calculate index of functional identity from trait data
-
-## read in trait data and subset by relevant species and traits
-traits<-read.csv("TraitData/IDENT_TRAIT_DATABASE_2020-10-20.csv")
-traits<-traits[-which(traits$SpeciesCode %in% del_species),]
-
-traits<-traits[,c("SpeciesCode","LL","LDMC","Leaf_N_mass","SLA..all.include.",
-                  "SRL..fine.root.","SSD...WD")]
-
-## match trait row order to columns of community matrix
-traits<-traits[match(colnames(neighbor.df),traits$SpeciesCode),]
-rownames(traits)<-as.character(traits$SpeciesCode)
-traits$SpeciesCode<-NULL
-
-## just extract whether species are deciduous or evergreen
-## for plotting purposes (but not for the PCA)
-leaf_habit<-ifelse(traits$LL>12,
-                   yes = "Evergreen",
-                   no = "Deciduous")
-traits$LL<-NULL
-
-## do PCA of traits
-trait.pca<-prcomp(traits,scale. = T)
-trait.pca.scores<-data.frame(species = rownames(trait.pca$x),
-                             trait.pca$x,
-                             leaf_habit=leaf_habit)
-trait.pca.loadings<-data.frame(variables = rownames(trait.pca$rotation),
-                               trait.pca$rotation)
-trait.pca.loadings$variables<-c("LDMC","%N","SLA","SRL","WD")
-trait.pca.perc<-trait.pca$sdev^2/sum(trait.pca$sdev^2)*100
-
-leaf_habit_cols<-c("Deciduous"="#a44f30",
-                   "Evergreen"="#60941a")
-
-trait.pca.plot<-ggplot(trait.pca.scores, 
-                       aes(x = -PC1, y = PC2)) +
-  geom_text(size = 3.5,label = trait.pca.scores$species,
-            aes(color = trait.pca.scores$leaf_habit)) +
-  geom_segment(data = trait.pca.loadings,
-               aes(x = 0, y = 0, xend = -PC1*5, yend = PC2*5),
-               arrow = arrow(length = unit(1/2, "picas")),
-               size=1,color="#3366FF") +
-  annotate("text",
-           x = -trait.pca.loadings$PC1*5.5,
-           y = trait.pca.loadings$PC2*5.5,
-           label = trait.pca.loadings$variables,
-           color="#3366FF")+
-  theme_bw()+theme(text=element_text(size=15),
-                   panel.background = element_rect(fill='transparent'), #transparent panel bg
-                   plot.background = element_rect(fill='transparent', color=NA))+
-  coord_fixed(ratio=trait.pca.perc[2]/trait.pca.perc[1])+
-  guides(color="none")+
-  scale_color_manual(values = leaf_habit_cols)+
-  labs(x=paste("CP1 (",round(trait.pca.perc[1],1),"% variance)",sep=""),
-       y=paste("CP2 (",round(trait.pca.perc[2],1),"% variance)",sep=""))
-
-ggsave("Images/trait_pca_plot.png", trait.pca.plot, bg='transparent',
-       dpi=600,width=7,height=4)
-
-write.csv(trait.pca.scores,"TraitData/trait_pca_scores.csv")
-
 #########################################
 ## calculate functional diversity
+
+trait_summary<-read.csv("TraitData/trait_summary.csv")
+trait_summary<-traits[match(colnames(neighbor.df),trait_summary$SpeciesCode),]
 
 ## calculate CWM of first trait PCA component, omitting the central tree
 ## this gives as the functional identity of the neighborhood
