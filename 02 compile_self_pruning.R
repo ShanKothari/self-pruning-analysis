@@ -100,7 +100,7 @@ species_means$leaf_habit<-ifelse(species_means$leaf_lifespan>12,
 
 # summary(lm(logLightBase~shade_tol+focal_acq,data=species_means))
 
-leaf_habit_cols<-c("Deciduous"="#a44f30",
+leaf_habit_cols<-c("Deciduous"="chocolate4",
                    "Evergreen"="#60941a")
 
 lfbase_ll_sp<-ggplot(data=species_means,
@@ -113,8 +113,8 @@ lfbase_ll_sp<-ggplot(data=species_means,
   coord_cartesian(ylim=c(-6.5,-2.5))+
  labs(x="log(leaf lifespan [months])",
       y="log(light fraction) at crown base")
-ggsave(filename = "Images/lfbase_ll_sp_FR.png",plot = lfbase_st_sp,
-       width=6,height=5,units="in",dpi=600)
+# ggsave(filename = "Images/lfbase_ll_sp_FR.png",plot = lfbase_ll_sp,
+#        width=6,height=5,units="in",dpi=600)
 
 lfbase_st_sp<-ggplot(data=species_means,
                      aes(x=shade_tol,
@@ -131,8 +131,8 @@ lfbase_st_sp<-ggplot(data=species_means,
        y=expression(paste("log (",italic(L[base]),")")))
   # labs(x="Shade tolerance",
   #      y="log(light fraction) at crown base")
-ggsave(filename = "Images/lfbase_st_sp_FR.png",plot = lfbase_st_sp,
-       width=6,height=5,units="in",dpi=600)
+# ggsave(filename = "Images/lfbase_st_sp_FR.png",plot = lfbase_st_sp,
+#        width=6,height=5,units="in",dpi=600)
 
 lfbase_acq_sp<-ggplot(data=species_means,
                       aes(x=focal_acq,
@@ -145,12 +145,12 @@ lfbase_acq_sp<-ggplot(data=species_means,
   coord_cartesian(ylim=c(-6.5,-2.5))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
-  labs(x="Propension acquisitive",
+  labs(x="Tendance acquisitive (CP1)",
        y=expression(paste("log (",italic(L[base]),")")))
   # labs(x="Focal tree acquisitiveness",
   #      y="log(light fraction) at crown base")
-ggsave(filename = "Images/lfbase_acq_sp_FR.png", plot = lfbase_acq_sp,
-       width=6,height=5,units="in",dpi=600)
+# ggsave(filename = "Images/lfbase_acq_sp_FR.png", plot = lfbase_acq_sp,
+#        width=6,height=5,units="in",dpi=600)
 
 ## PC2 from the trait data (mostly LDMC)
 ## is actually correlated with shade tolerance!
@@ -191,6 +191,8 @@ NCI_plastic<-ggplot(self_pruning,
   # labs(x="NCI",
   #      y="log(light fraction) at crown base")+
   guides(color="none")
+# ggsave(filename="Images/NCI_plastic.png",NCI_plastic,
+#        width=6,height=5,dpi=600)
 
 neighbor_acq_plastic<-ggplot(self_pruning,
                              aes(x=neighbor_acq,
@@ -311,11 +313,18 @@ NCI_slopes<-ggplot(data=species_means,
                    aes(x=focal_acq,
                        y=light_NCI_slope,
                        label=Species))+
-  geom_smooth(method="lm")+geom_text()+
+  geom_smooth(method="lm")+
+  geom_text(size=5,aes(color=leaf_habit))+
   theme_bw()+
-  theme(text=element_text(size=15))+
-  labs(x="Functional identity",
-       y="Change in log(LF) at base with NCI")
+  theme(text=element_text(size=20))+
+  guides(color="none")+
+  scale_color_manual(values = leaf_habit_cols)+
+  # labs(x="Functional identity",
+  #      y="Change in log(LF) at base with NCI")
+  labs(x="Tendance acquisitive (CP1)",
+       y=expression(paste("Pentes : log(",italic(L[base]),") ~ NCI")))
+ggsave(filename = "Images/NCI_slopes_FR.png",NCI_slopes,
+       dpi=600,width = 6,height=5)
 
 height_slopes<-ggplot(data=species_means,
                       aes(x=focal_acq,
@@ -346,7 +355,6 @@ light_top_slopes<-ggplot(data=species_means,
   theme(text=element_text(size=15))+
   labs(x="Functional identity",
        y="Change in log(LF) at base with log(LF) at top")
-
 
 plot_compile<-ggpubr::ggarrange(neighbor_acq_plastic,neighbor_acq_slopes,
                                 NCI_plastic,NCI_slopes,
