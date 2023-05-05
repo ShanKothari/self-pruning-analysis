@@ -26,74 +26,31 @@ del_species<-c("ACPL","LADE","TICO","PIAB","PISY","QURO","PIOM","BELE","BEPE","P
 del_plots<-unique(DB_community$Plot[DB_community$CodeSp %in% del_species])
 DB_community<-DB_community[-which(DB_community$Plot %in% del_plots),]
 
-let2num<-function(let) return(match(let,LETTERS[1:26]))
-num2let<-function(num) return(ifelse(num<=0,NA,LETTERS[num]))
-
 #############################
-## finding each tree's immediate neighbors
-## by looking for those a certain number of
-## letters and/or numbers away
-
-## an alternate approach would be to use the
+## finding each tree's neighbors using
 ## X_Pos and Y_Pos columns to set an explicit radius
 
-neighbor.id<-function(row,column,radius=1){
-  
-  rows_out<-rep((row-radius):(row+radius),each=radius*2+1)
-  col_nums<-rep(let2num(column)+((-1*radius):radius),radius*2+1)
-  cols_out<-sapply(col_nums,num2let)
-  
-  row_diff<-rows_out-row
-  col_diff<-col_nums-let2num(column)
-    
-  return(data.frame(rows=rows_out,
-                    cols=cols_out,
-                    row_diff=row_diff,
-                    col_diff=col_diff))
-}
-
-## this function uses the neighbor.id function to
-## pull the outcome variable of interest for the trees
-## a certain radius around the focal tree
-neighbor.finder<-function(dat,outcome.var,sp.var,radius=1,grid.size=0.5){
+neighbor.finder<-function(dat,outcome.var,sp.var,radius=2){
   outcome.list<-list()
   
   for(i in 1:nrow(dat)){
-    block<-dat$Block[i]
-    plot<-dat$Plot[i]
-    row<-dat$Row[i]
-    col<-dat$Col[i]
+    xpos<-dat$X_Pos[i]
+    ypos<-dat$Y_Pos[i]
 
     ## get neighbor IDs
-    neighbors<-neighbor.id(row=row,column=col,radius=radius)
-    neighbors$cols<-factor(neighbors$cols,levels=LETTERS[1:8])
-    neighbors$blocks<-block
-    neighbors$plots<-plot
-    
-    neighbors$position<-paste0(neighbors$cols,neighbors$rows)
-    neighbors$UniqueTreeID<-paste(neighbors$blocks,
-                                  neighbors$plots,
-                                  neighbors$position,
-                                  sep="_")
-    
-    ## extract outcome variables and species
-    out<-sapply(1:nrow(neighbors),
-                function(x) which(dat$UniqueTreeID==neighbors$UniqueTreeID[x]))
-    out[which(out=="integer(0)")]<-NA
-    out<-unlist(out)
-    
-    outcome.vector<-dat[out,outcome.var]
-    outcome.species<-as.factor(dat[out,sp.var])
+    distances<-sqrt((dat$X_Pos-xpos)^2+(dat$Y_Pos-ypos[1])^2)
+    neighbors<-dat[which(distances <= radius),
+                   c(outcome.var,sp.var,"UniqueTreeID")]
+    colnames(neighbors)<-c("outcome","species","UniqueTreeID")
+    neighbors$distance<-distances[which(distances <= radius)]
     
     ## replace NAs in the outcome with 0
     ## if there was a planted tree
-    outcome.vector[is.na(outcome.vector) & !is.na(outcome.species)]<-0
-
-    ## calculate distances to each neighbor
-    outcome.dist<-grid.size*sqrt(neighbors$row_diff^2+neighbors$col_diff^2)
-    outcome.list[[i]]<-data.frame(distance=outcome.dist,
-                                  species=outcome.species,
-                                  outcome=outcome.vector)
+    neighbor.na<-which(is.na(neighbors$outcome) & !is.na(neighbors$species))
+    neighbors$outcome[neighbor.na]<-0
+    
+    ## add to list
+    outcome.list[[i]]<-neighbors
   }
   
   names(outcome.list)<-dat$UniqueTreeID
