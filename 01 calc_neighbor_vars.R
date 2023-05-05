@@ -30,7 +30,7 @@ DB_community<-DB_community[-which(DB_community$Plot %in% del_plots),]
 ## finding each tree's neighbors using
 ## X_Pos and Y_Pos columns to set an explicit radius
 
-neighbor.finder<-function(dat,outcome.var,sp.var,radius=2){
+neighbor.finder<-function(dat,outcome.var,sp.var,radius){
   outcome.list<-list()
   
   for(i in 1:nrow(dat)){
@@ -58,7 +58,8 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius=2){
 }
 
 ## grab basal areas of neighbors
-neighbor.area<-neighbor.finder(DB_community,"BasalArea","CodeSp")
+## within radius of 2 m
+neighbor.area<-neighbor.finder(DB_community,"BasalArea","CodeSp",radius=1.5)
 
 ## delete neighborhoods with no living trees
 neighbor.total<-unlist(lapply(neighbor.area,
