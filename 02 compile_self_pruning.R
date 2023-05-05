@@ -3,6 +3,8 @@ setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 library(ggplot2)
 library(ggpubr)
 library(lme4)
+library(chron)
+library(fishmethods)
 
 ## to do:
 ## also calculate non-abundance-weighted values
@@ -12,18 +14,66 @@ library(lme4)
 ## at the plot scale
 ##
 ## check that neighbor comp is calculated correctly
-##
-## use solar zenith angle to modify Lbase and Ltop
+
+## changes to data files sent by Jon:
+## corrected "DEAd" to "DEAD" for A	4N8	4	THOC
+## fixed typo in base measurement time for D	2N7	2	LALA
 
 ## read and clean data
 self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA_TimeINFO.csv")
-self_pruning<-self_pruning[-which(self_pruning$Species==""),]
 self_pruning$Plot<-gsub(" ","",self_pruning$Plot)
 self_pruning$UniquePlot<-paste(self_pruning$Block,self_pruning$Plot,sep=".")
 self_pruning$UniqueTreeID<-paste(self_pruning$Block,
                                  self_pruning$Plot,
                                  self_pruning$TreeID,
                                  sep="_")
+
+####################################
+## calculate solar zenith angle from time of day
+
+## IDENT-Montreal coordinates
+latitude<-45.425
+longitude<- -73.939
+
+## time sampled at the base
+base_sampling<-strsplit(self_pruning$Time.Sampled,split = "-")
+base_start<-unlist(lapply(base_sampling,function(x) ifelse(length(x) > 1, x[1], NA)))
+base_start<-sapply(base_start,function(x) ifelse(!is.na(x),paste(x,":00",sep=""),NA))
+
+base_end<-unlist(lapply(base_sampling,function(x) ifelse(length(x) > 1, x[2], NA)))
+base_end<-sapply(base_end,function(x) ifelse(!is.na(x),paste(x,":00",sep=""),NA))
+
+base_times<-data.frame(base_start=chron(times=base_start),
+                       base_end=chron(times=base_end),
+                       date_sampled=self_pruning$Day.Sampled)
+date_split<-strsplit(base_times$date_sampled,split="/")
+base_times$day<-unlist(lapply(date_split,function(x) as.numeric(ifelse(length(x) > 0, x[1], NA))))
+base_times$month<-unlist(lapply(date_split,function(x) as.numeric(ifelse(length(x) > 0, x[2], NA))))
+base_times$year<-unlist(lapply(date_split,function(x) as.numeric(ifelse(length(x) > 0, x[3], NA))))
+
+base_times$mean_decimal<-rowMeans(base_times[,c("base_start","base_end")])
+base_times$mean_time<-times(base_times$mean_decimal)
+base_times$mean_hours<-base_times$mean_decimal*24
+
+base_times$date_time<-paste(base_times$date_sampled,base_times$mean_time,sep=" ")
+base_times$date_time_POSIX<-as.POSIXct(base_times$date_time,format="%d/%m/%Y %H:%M:%S")
+
+base_times_sub<-base_times[which(!is.na(base_times$day)),]
+## Montreal is always GMT -4 during the months of July and August
+base_times_angle<-astrocalc4r(day=base_times_sub$day,
+                              month=base_times_sub$month,
+                              year=base_times_sub$year,
+                              hour=base_times_sub$mean_hours,
+                              timezone = rep(-4,times=nrow(base_times_sub)),
+                              lat = rep(latitude,times=nrow(base_times_sub)),
+                              lon = rep(longitude,times=nrow(base_times_sub)),
+                              seaorland = "continental")
+
+## clunky!
+self_pruning$zenith<-NULL
+self_pruning$zenith[which(!is.na(base_times$day))]<-base_times_angle$zenith
+
+## repeat for the top?
 
 ####################################
 ## produce new self-pruning and predictor variables
@@ -61,7 +111,7 @@ neighbor_outlier<-which(self_pruning$neighbor_comp>60000)
 self_pruning<-self_pruning[-neighbor_outlier,]
 
 ## read in trait data to get shade tolerance
-trait_summary<-read.csv("TraitData/trait_summary")
+trait_summary<-read.csv("TraitData/trait_summary.csv")
 self_pruning$shade_tol<-trait_summary$shade_tol[match(self_pruning$Species,
                                                       trait_summary$SpeciesCode)]
 
