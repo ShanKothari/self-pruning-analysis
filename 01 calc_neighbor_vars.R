@@ -12,8 +12,8 @@ DB_community$Col<-str_sub(DB_community$Pos,1,1)
 DB_community$Row<-as.numeric(str_sub(DB_community$Pos,2,2))
 DB_community$UniqueTreeID<-paste(DB_community$Block,DB_community$Plot,DB_community$Pos,sep="_")
 
-## calculate basal area from basal diameter
-DB_community$BasalArea<-(DB_community$BasalDiam/2)^2*pi
+## calculate basal area in cm^2 from basal diameter
+DB_community$BasalArea<-(DB_community$BasalDiam/20)^2*pi
 
 ## plot composition identifiers for those that include
 ## species we don't care about for the self-pruning paper
@@ -67,18 +67,12 @@ neighbor.area<-neighbor.area[-which(neighbor.total==0)]
 ## including a distance-weighted sum
 ## and Hegyi (also incorporates focal tree size)
 
-neighbor.comp<-lapply(neighbor.area,
-                      function(neighborhood){
-                        center<-neighborhood[which(neighborhood$distance==0),]
-                        centerless<-neighborhood[-which(neighborhood$distance==0),]
-                        comp.index<-sum(centerless$outcome/centerless$distance,na.rm=T)
-                        Hegyi.index<-comp.index/center$outcome
-                        return(list(comp.index=comp.index,
-                                    Hegyi.index=Hegyi.index))
-                      })
-
-neighbor.comp.df<-data.frame(comp.index=unlist(lapply(neighbor.comp, function(x) x$comp.index)),
-                             Hegyi.index=unlist(lapply(neighbor.comp, function(x) x$Hegyi.index)))
+neighbor.comp<-unlist(lapply(neighbor.area,
+                             function(neighborhood){
+                               centerless<-neighborhood[-which(neighborhood$distance==0),]
+                               comp.index<-sum(centerless$outcome/centerless$distance,na.rm=T)
+                               return(comp.index)
+                             }))
 
 ###########################################
 ## get community data into the right format(s)
@@ -138,8 +132,7 @@ neighbor.FTD<-FTD.comm(tdmat=dist(traits),
 
 neighbor.data<-data.frame(UniqueTreeID=names(neighbor.area),
                           neighbor.richness=neighbor.richness,
-                          comp.index=neighbor.comp.df$comp.index,
-                          Hegyi.index=neighbor.comp.df$Hegyi.index,
+                          comp.index=neighbor.comp,
                           neighbor.FI1=neighbor.CWM1,
                           FDis=neighbor.FDis$FDis,
                           qDTM=neighbor.FTD$com.FTD$qDTM)
