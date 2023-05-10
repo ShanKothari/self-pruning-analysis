@@ -13,9 +13,6 @@ library(lmerTest)
 ## try adding functional distance of neighbors from focal individual to SEMs
 ## consider non-abundance weighted metrics?
 
-## have HeightTop and CR_average be underpinned by a latent variable
-## have HeightTop and CR_average both be predicted by neighbor acquisitiveness
-
 ## maybe use crown depth as the main "position" variable in SEMs?
 
 ###################################

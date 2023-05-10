@@ -7,10 +7,6 @@ library(labdsv)
 library(FD)
 library(ggplot2)
 
-## to dos:
-## increase NCI radius (to 2 m or so?)
-## use a radius-based approach rather than a grid-based approach
-
 DB_community<-read.csv("IDENTMontrealData/Inventory2018.csv")
 DB_community$Col<-str_sub(DB_community$Pos,1,1)
 DB_community$Row<-as.numeric(str_sub(DB_community$Pos,2,2))
@@ -59,7 +55,7 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
 
 ## grab basal areas of neighbors
 ## within radius of 2 m
-neighbor.area<-neighbor.finder(DB_community,"BasalArea","CodeSp",radius=1.5)
+neighbor.area<-neighbor.finder(DB_community,"BasalArea","CodeSp",radius=2)
 
 ## delete neighborhoods with no living trees
 neighbor.total<-unlist(lapply(neighbor.area,

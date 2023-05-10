@@ -10,15 +10,13 @@ library(fishmethods)
 ## also calculate non-abundance-weighted values
 ## of neighbor function/diversity?
 ##
-## and functional diversity/heterogeneity in shade tolerance
-## at the plot scale
-##
 ## check that neighbor comp is calculated correctly
 
-## changes to data files sent by Jon:
+## manual changes to data files sent by Jon:
 ## corrected "DEAd" to "DEAD" for A	4N8	4	THOC
 ## fixed typo in base measurement time for D	2N7	2	LALA
 
+#######################################
 ## read and clean data
 self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA_TimeINFO.csv")
 self_pruning$Plot<-gsub(" ","",self_pruning$Plot)
@@ -106,7 +104,8 @@ self_pruning$neighbor_comp<-neighbor.data$comp.index[match(self_pruning$UniqueTr
 ## one BEPA has a neighborhood competition index more than twice
 ## the others so we can eliminate it as a potential outlier
 ## NOTE: this code will probably need changing based on
-## recalculation of NCI
+## recalculation of NCI; would need to reverify whether
+## this tree is in fact an outlier
 neighbor_outlier<-which(self_pruning$neighbor_comp>60000)
 self_pruning<-self_pruning[-neighbor_outlier,]
 
