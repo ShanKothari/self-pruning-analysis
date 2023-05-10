@@ -142,3 +142,20 @@ neighbor.data<-data.frame(UniqueTreeID=names(neighbor.area),
 
 ## write data
 write.csv(neighbor.data,"IDENTMontrealData/neighborhood_vars.csv")
+
+#################################
+## output mortalities
+
+## need to resolve these issues
+## and maybe do some data cleaning (comparisons to 2017 and 2019?)
+DB_community[which(DB_community$StateDesc!="Dead" & is.na(DB_community$BasalArea)),]
+DB_community[which(DB_community$StateDesc=="Dead" & !is.na(DB_community$BasalArea)),]
+
+## ignoring that for now
+## count a tree as dead if its status is "dead"
+DB_community$dead<-ifelse(DB_community$StateDesc=="Dead",yes=1,no=0)
+DB_mortality<-aggregate(dead~Block+Plot+CodeSp,
+                        data=DB_community,
+                        FUN=mean)
+
+write.csv(DB_mortality,"IDENTMontrealData/mortality_2018.csv")
