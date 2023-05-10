@@ -18,6 +18,7 @@ library(fishmethods)
 
 #######################################
 ## read and clean data
+
 self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA_TimeINFO.csv")
 self_pruning$Plot<-gsub(" ","",self_pruning$Plot)
 self_pruning$UniquePlot<-paste(self_pruning$Block,self_pruning$Plot,sep=".")
@@ -25,6 +26,11 @@ self_pruning$UniqueTreeID<-paste(self_pruning$Block,
                                  self_pruning$Plot,
                                  self_pruning$TreeID,
                                  sep="_")
+
+## drop dead trees
+## mortalities in the self-pruning dataset are uninformative
+## about true mortality rates, so they convey no real information
+self_pruning<-self_pruning[-which(toupper(self_pruning$TreeID)=="DEAD"),]
 
 ####################################
 ## calculate solar zenith angle from time of day

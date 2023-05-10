@@ -153,8 +153,8 @@ DB_community[which(DB_community$StateDesc=="Dead" & !is.na(DB_community$BasalAre
 
 ## ignoring that for now
 ## count a tree as dead if its status is "dead"
-DB_community$dead<-ifelse(DB_community$StateDesc=="Dead",yes=1,no=0)
-DB_mortality<-aggregate(dead~Block+Plot+CodeSp,
+DB_community$Alive<-ifelse(DB_community$StateDesc!="Dead",yes=1,no=0)
+DB_mortality<-aggregate(Alive~Block+Plot+CodeSp,
                         data=DB_community,
                         FUN=mean)
 
