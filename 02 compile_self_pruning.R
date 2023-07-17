@@ -104,16 +104,8 @@ self_pruning$qDTM<-neighbor.data$qDTM[match(self_pruning$UniqueTreeID,
                                             neighbor.data$UniqueTreeID)]
 self_pruning$neighbor_acq<- -neighbor.data$neighbor.FI1[match(self_pruning$UniqueTreeID,
                                                           neighbor.data$UniqueTreeID)]
-self_pruning$neighbor_comp<-neighbor.data$comp.index[match(self_pruning$UniqueTreeID,
+self_pruning$neighbor_comp<-neighbor.data$NCI[match(self_pruning$UniqueTreeID,
                                                            neighbor.data$UniqueTreeID)]
-
-## one BEPA has a neighborhood competition index more than twice
-## the others so we can eliminate it as a potential outlier
-## NOTE: this code will probably need changing based on
-## recalculation of NCI; would need to reverify whether
-## this tree is in fact an outlier
-neighbor_outlier<-which(self_pruning$neighbor_comp>60000)
-self_pruning<-self_pruning[-neighbor_outlier,]
 
 ## read in trait data to get shade tolerance
 trait_summary<-read.csv("TraitData/trait_summary.csv")
