@@ -7,20 +7,13 @@ library(labdsv)
 library(FD)
 library(ggplot2)
 
-DB_community<-read.csv("IDENTMontrealData/Inventory2018.csv")
-DB_community$Col<-str_sub(DB_community$Pos,1,1)
-DB_community$Row<-as.numeric(str_sub(DB_community$Pos,2,2))
-DB_community$UniqueTreeID<-paste(DB_community$Block,DB_community$Plot,DB_community$Pos,sep="_")
+Inventory2018<-read.csv("IDENTMontrealData/Inventory2018_cleaned.csv")
+Inventory2018$Col<-str_sub(Inventory2018$Pos,1,1)
+Inventory2018$Row<-as.numeric(str_sub(Inventory2018$Pos,2,2))
+Inventory2018$UniqueTreeID<-paste(Inventory2018$Block,Inventory2018$Plot,Inventory2018$Pos,sep="_")
 
 ## calculate basal area in cm^2 from basal diameter
-DB_community$BasalArea<-(DB_community$BasalDiam/20)^2*pi
-
-## plot composition identifiers for those that include
-## species we don't care about for the self-pruning paper
-## none of these are neighbors of focal species
-del_species<-c("ACPL","LADE","TICO","PIAB","PISY","QURO","PIOM","BELE","BEPE","PIMA")
-del_plots<-unique(DB_community$Plot[DB_community$CodeSp %in% del_species])
-DB_community<-DB_community[-which(DB_community$Plot %in% del_plots),]
+Inventory2018$BasalArea<-(Inventory2018$BasalDiam_cleaned/20)^2*pi
 
 #############################
 ## finding each tree's neighbors using
@@ -55,7 +48,16 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
 
 ## grab basal areas of neighbors
 ## within radius of 2 m
-neighbor.area<-neighbor.finder(DB_community,"BasalArea","CodeSp",radius=2)
+neighbor.area<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=1.6)
+
+## delete focal trees in plots we don't care about
+## based on plot composition identifiers
+del_species<-c("ACPL","LADE","TICO","PIAB","PISY","QURO","PIOM","BELE","BEPE","PIMA")
+del_plots<-unique(Inventory2018$Plot[Inventory2018$CodeSp %in% del_species])
+del_plots<-paste("_",del_plots,"_",sep="")
+del_pattern<-paste(del_plots,collapse="|")
+del_trees<-which(grepl(del_pattern,names(neighbor.area)))
+neighbor.area<-neighbor.area[-del_trees]
 
 ## delete neighborhoods with no living trees
 neighbor.total<-unlist(lapply(neighbor.area,
@@ -111,28 +113,33 @@ neighbor.richness<-rowSums(neighbor.df>0)
 ## calculate functional diversity
 
 trait_summary<-read.csv("TraitData/trait_summary.csv")
-trait_summary<-traits[match(colnames(neighbor.df),trait_summary$SpeciesCode),]
+trait_summary<-trait_summary[match(colnames(neighbor.df),trait_summary$SpeciesCode),]
+
+core_traits<-trait_summary[,c("LDMC","N","SLA","SRL","WD")]
+rownames(core_traits)<-trait_summary$SpeciesCode
 
 ## calculate CWM of first trait PCA component, omitting the central tree
 ## this gives as the functional identity of the neighborhood
 neighbor.prop<-neighbor.df.centerless/rowSums(neighbor.df.centerless)
-neighbor.CWM1<-data.frame(as.matrix(neighbor.prop) %*% trait.pca.scores)$PC1
+neighbor.CWM1<-as.matrix(neighbor.prop) %*% trait_summary$PC1
+
 ## for trees with no neighbors, assign a neighborhood functional ID of 0
-neighbor.CWM1[is.na(neighbor.CWM1)]<-0
+## generally not needed if neighborhood is greater than just immediate neighbors
+# neighbor.CWM1[is.na(neighbor.CWM1)]<-0
 
 ## calculate FDis using FD package
 ## including the central tree
-neighbor.FDis<-fdisp(dist(traits),
+neighbor.FDis<-fdisp(dist(core_traits),
                      a = as.matrix(neighbor.df))
 
 ## calculate Scheiner's metrics
-neighbor.FTD<-FTD.comm(tdmat=dist(traits),
+neighbor.FTD<-FTD.comm(tdmat=dist(core_traits),
                        spmat = as.matrix(neighbor.df),
                        abund=T)
 
 neighbor.data<-data.frame(UniqueTreeID=names(neighbor.area),
                           neighbor.richness=neighbor.richness,
-                          comp.index=neighbor.comp,
+                          NCI=neighbor.comp,
                           neighbor.FI1=neighbor.CWM1,
                           FDis=neighbor.FDis$FDis,
                           qDTM=neighbor.FTD$com.FTD$qDTM)
@@ -148,14 +155,14 @@ write.csv(neighbor.data,"IDENTMontrealData/neighborhood_vars.csv")
 
 ## need to resolve these issues
 ## and maybe do some data cleaning (comparisons to 2017 and 2019?)
-DB_community[which(DB_community$StateDesc!="Dead" & is.na(DB_community$BasalArea)),]
-DB_community[which(DB_community$StateDesc=="Dead" & !is.na(DB_community$BasalArea)),]
+Inventory2018[which(Inventory2018$StateDesc!="Dead" & is.na(Inventory2018$BasalArea)),]
+Inventory2018[which(Inventory2018$StateDesc=="Dead" & !is.na(Inventory2018$BasalArea)),]
 
 ## ignoring that for now
 ## count a tree as dead if its status is "dead"
-DB_community$Alive<-ifelse(DB_community$StateDesc!="Dead",yes=1,no=0)
+Inventory2018$Alive<-ifelse(Inventory2018$StateDesc!="Dead",yes=1,no=0)
 DB_mortality<-aggregate(Alive~Block+Plot+CodeSp,
-                        data=DB_community,
+                        data=Inventory2018,
                         FUN=mean)
 
 write.csv(DB_mortality,"IDENTMontrealData/mortality_2018.csv")
