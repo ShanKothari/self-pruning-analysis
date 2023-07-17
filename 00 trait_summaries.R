@@ -60,4 +60,4 @@ ggsave("Images/trait_pca_plot.png", trait_pca_plot, bg='transparent',
 
 trait_summary<-cbind(traits,trait_pca_scores)
 trait_summary$species<-NULL
-write.csv(trait_summary,"TraitData/trait_summary.csv")
+write.csv(trait_summary,"TraitData/trait_summary.csv",row.names = F)
