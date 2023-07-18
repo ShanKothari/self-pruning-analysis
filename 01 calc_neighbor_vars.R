@@ -47,22 +47,33 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
 }
 
 ## grab basal areas of neighbors
-## within radius of 2 m
+## within radius of 1.6 m
 neighbor.area<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=1.6)
 
 ## delete focal trees in plots we don't care about
 ## based on plot composition identifiers
 del_species<-c("ACPL","LADE","TICO","PIAB","PISY","QURO","PIOM","BELE","BEPE","PIMA")
 del_plots<-unique(Inventory2018$Plot[Inventory2018$CodeSp %in% del_species])
-del_plots<-paste("_",del_plots,"_",sep="")
-del_pattern<-paste(del_plots,collapse="|")
-del_trees<-which(grepl(del_pattern,names(neighbor.area)))
-neighbor.area<-neighbor.area[-del_trees]
+del_plot_pattern<-paste(paste("_",del_plots,"_",sep=""),collapse="|")
+neighbor.area<-neighbor.area[-which(grepl(del_plot_pattern,names(neighbor.area)))]
 
 ## delete neighborhoods with no living trees
 neighbor.total<-unlist(lapply(neighbor.area,
                               function(neighborhood) sum(neighborhood$outcome,na.rm=T)))
-neighbor.area<-neighbor.area[-which(neighbor.total==0)]
+if(sum(neighbor.total==0)>0){
+  neighbor.area<-neighbor.area[-which(neighbor.total==0)]
+}
+
+## delete edge trees so that we (hopefully) don't have to think about
+## the non-native species
+## WORK ON THIS
+edge.trees<-paste("_",c(paste(LETTERS[1:8],"1",sep=""),
+                        paste(LETTERS[1:8],"8",sep=""),
+                        paste("A",1:8,sep=""),
+                        paste("H",1:8,sep="")),
+                  sep="")
+edge_pattern<-paste(edge.trees,collapse="|")
+neighbor.area<-neighbor.area[-which(grepl(edge_pattern,names(neighbor.area)))]
 
 ########################################
 ## calculate various competition indices
