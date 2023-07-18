@@ -47,8 +47,8 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
 }
 
 ## grab basal areas of neighbors
-## within radius of 1.6 m
-neighbor.area<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=1.6)
+## within radius of 2 m
+neighbor.area<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=2)
 
 ## delete focal trees in plots we don't care about
 ## based on plot composition identifiers
@@ -63,17 +63,6 @@ neighbor.total<-unlist(lapply(neighbor.area,
 if(sum(neighbor.total==0)>0){
   neighbor.area<-neighbor.area[-which(neighbor.total==0)]
 }
-
-## delete edge trees so that we (hopefully) don't have to think about
-## the non-native species
-## WORK ON THIS
-edge.trees<-paste("_",c(paste(LETTERS[1:8],"1",sep=""),
-                        paste(LETTERS[1:8],"8",sep=""),
-                        paste("A",1:8,sep=""),
-                        paste("H",1:8,sep="")),
-                  sep="")
-edge_pattern<-paste(edge.trees,collapse="|")
-neighbor.area<-neighbor.area[-which(grepl(edge_pattern,names(neighbor.area)))]
 
 ########################################
 ## calculate various competition indices
