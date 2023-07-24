@@ -10,17 +10,24 @@ library(mosaic)
 ## data on crown shape and size
 
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
+
 ## get indicators of species composition
+## in case these are needed later?
 self_pruning_list<-split(self_pruning,f = self_pruning$Plot)
 self_pruning_comp<-unlist(lapply(self_pruning_list,
                                  function(plot) paste(unique(plot$Species),collapse="|")))
 
 ## read in mortality data
-DB_mortality<-read.csv("IDENTMontrealData/mortality_2018.csv")
-DB_mortality$plot_sp<-paste(DB_mortality$Block,
-                             DB_mortality$Plot,
-                             DB_mortality$CodeSp,
-                             sep="_")
+mortality_2018<-read.csv("IDENTMontrealData/mortality_2018.csv")
+mortality_2018$plot_sp<-paste(mortality_2018$Block,
+                              mortality_2018$Plot,
+                              mortality_2018$CodeSp,
+                              sep="_")
+
+## proportion of species planted within the inner 36 and
+## proportion of planted individuals of the species still alive
+mortality_2018$prop_planted<-mortality_2018$num_planted/36
+mortality_2018$prop_alive<-mortality_2018$num_alive/mortality_2018$num_planted
 
 ## parameters from Purves et al. paper
 C0B<-0.196
@@ -31,19 +38,15 @@ species.list<-c("ABBA","ACRU","ACSA","BEAL","BEPA","LALA",
 Tj<-c(0.278,0.536,0.560,0.592,0.435,0.308,
       0.278,0.287,0.324,0.417,0.538,0.251)
 
-crown_shape<-data.frame(species=species.list,
-                        Tj=Tj)
+crown_shape<-data.frame(species=species.list,Tj=Tj)
 crown_shape$Bj<-(1-crown_shape$Tj)*C0B+crown_shape$Tj*C1B
 self_pruning$Bj<-crown_shape$Bj[match(self_pruning$Species,crown_shape$species)]
-
-######################################
-## calculate canopy packing
 
 ## formulas for area/volume of crown
 crown_area<-function(CD,CR,beta){(CR*CD)/(beta+1)}
 crown_vol<-function(CD,CR,beta){(pi*CR^2*CD)/(2*beta+1)}
 
-## through rows of the self-pruning data
+## calculate for each row of the self-pruning data
 self_pruning$crown_vol<-sapply(1:nrow(self_pruning),
                                function(i) {
                                  crown_i<-crown_vol(CD=self_pruning$CrownDepth[i]/100,
@@ -52,40 +55,45 @@ self_pruning$crown_vol<-sapply(1:nrow(self_pruning),
                                  return(crown_i)
                                })
 
+######################################
+## calculate canopy packing
 
-## NOTE: does this aggregation account for unequal numbers of planted individuals
-## of various species within a plot?
-
-crown_vol_agg<-aggregate(self_pruning$crown_vol,
-                         by=list(self_pruning$Block,
-                                 self_pruning$Plot,
-                                 self_pruning$Species,
-                                 self_pruning$nbsp),
-                         FUN=mean,na.rm=T)
+## take the mean crown volume for each species in each plot
+crown_vol_agg<-aggregate(crown_vol~Block+Plot+Species+nbsp,
+                         data=self_pruning,FUN=mean,na.rm=T)
 
 colnames(crown_vol_agg)<-c("Block","Plot","Species","Richness","crown_vol")
-crown_vol_agg$sp_comp<-self_pruning_comp[match(crown_vol_agg$Plot,names(self_pruning_comp))]
 
-## add mortality rate column and multiply volume by mortality rate
-crown_vol_agg$plot_sp<-paste(crown_vol_agg$Block,
-                             crown_vol_agg$Plot,
+## columns to match against for adding mortality and monoculture data
+crown_vol_agg$block_plot<-paste(crown_vol_agg$Block,
+                                crown_vol_agg$Plot,
+                                sep="_")
+
+crown_vol_agg$block_sp<-paste(crown_vol_agg$Block,
+                              crown_vol_agg$Species,
+                              sep="_")
+
+crown_vol_agg$plot_sp<-paste(crown_vol_agg$block_plot,
                              crown_vol_agg$Species,
                              sep="_")
 
-crown_vol_agg$prop_alive<-DB_mortality$Alive[match(crown_vol_agg$plot_sp,
-                                                   DB_mortality$plot_sp)]
-crown_vol_agg$crown_vol_adj<-crown_vol_agg$crown_vol*crown_vol_agg$prop_alive
+## attach numbers alive and planted in mixture
+mortality_match<-match(crown_vol_agg$plot_sp,mortality_2018$plot_sp)
+crown_vol_agg$num_alive<-mortality_2018$num_alive[mortality_match]
+crown_vol_agg$num_planted<-mortality_2018$num_planted[mortality_match]
+crown_vol_agg$prop_alive<-mortality_2018$prop_alive[mortality_match]
 
-crown_vol_agg$mono.means<-apply(crown_vol_agg,1,
-                                function(x) {
-                                  crown_vol_agg$crown_vol_adj[crown_vol_agg$sp_comp==x["Species"] & crown_vol_agg$Block==x["Block"]]
-                                })
-crown_vol_agg$OY<-crown_vol_agg$crown_vol_adj-crown_vol_agg$mono.means
+## attach mean crown volume and mortality rates in monoculture
+## here we take advantage of the fact that monocultures have a
+## plot name that is the same as their species code
+mono_match<-match(crown_vol_agg$block_sp,crown_vol_agg$block_plot)
+crown_vol_agg$crown_vol_mono<-crown_vol_agg$crown_vol[mono_match]
+crown_vol_agg$prop_alive_mono<-crown_vol_agg$prop_alive[mono_match]
 
-crown_OY_plot<-aggregate(crown_vol_agg$OY,
-                         by=list(crown_vol_agg$Plot,
-                                 crown_vol_agg$Richness),
-                         FUN=sum)
+crown_vol_agg$OY<-with(crown_vol_agg,
+                       crown_vol*num_alive-crown_vol_mono*num_planted*prop_alive_mono)
+
+crown_OY_plot<-aggregate(OY~Plot+Richness,data=crown_vol_agg,FUN=sum)
 
 ## to do:
 ## add measures of functional diversity and

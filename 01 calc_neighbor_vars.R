@@ -164,11 +164,11 @@ Inventory2018_center<-Inventory2018[-which(grepl(edge_pattern,Inventory2018$Pos)
 
 ## count a tree as alive if its status is not "dead"
 ## include a dummy column to tally up all planted trees within the inner 36
-Inventory2018_center$Alive<-ifelse(Inventory2018_center$StateDesc!="Dead",yes=1,no=0)
-Inventory2018_center$Planted<-1
+Inventory2018_center$num_alive<-ifelse(Inventory2018_center$StateDesc!="Dead",yes=1,no=0)
+Inventory2018_center$num_planted<-1
 
 ## output mortality summary statistics
-mortality_2018<-aggregate(cbind(Alive,Planted)~Block+Plot+CodeSp,
+mortality_2018<-aggregate(cbind(num_alive,num_planted)~Block+Plot+CodeSp,
                           data=Inventory2018_center,
                           FUN=sum)
 
