@@ -24,7 +24,7 @@ leaf_habit<-ifelse(traits$LL>12,
                    no = "Deciduous")
 
 ## nativeness for plotting purposes
-## add below (so we can de-emphasie non-native species)
+## add below (so we can de-emphasize non-native species)
 
 ## subset traits (no LL or shade tolerance) in preparation for PCA
 traits_sub<-traits[,-which(colnames(traits) %in% c("SpeciesCode","LL","shade_tol"))]

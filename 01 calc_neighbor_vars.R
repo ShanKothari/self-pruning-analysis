@@ -48,7 +48,7 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
 
 ## grab basal areas of neighbors
 ## within radius of 2 m
-neighbor.area<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=2)
+neighbor.area<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=1.5)
 
 ## delete focal trees in plots we don't care about
 ## based on plot composition identifiers
@@ -153,16 +153,23 @@ write.csv(neighbor.data,"IDENTMontrealData/neighborhood_vars.csv")
 #################################
 ## output mortalities
 
-## need to resolve these issues
-## and maybe do some data cleaning (comparisons to 2017 and 2019?)
-Inventory2018[which(Inventory2018$StateDesc!="Dead" & is.na(Inventory2018$BasalArea)),]
-Inventory2018[which(Inventory2018$StateDesc=="Dead" & !is.na(Inventory2018$BasalArea)),]
+## remove edge trees
+## to correspond with the sampling in the self-pruning project
+edge.trees<-c(paste(LETTERS[1:8],"1",sep=""),
+              paste(LETTERS[1:8],"8",sep=""),
+              paste("A",1:8,sep=""),
+              paste("H",1:8,sep=""))
+edge_pattern<-paste(edge.trees,collapse="|")
+Inventory2018_center<-Inventory2018[-which(grepl(edge_pattern,Inventory2018$Pos)),]
 
-## ignoring that for now
-## count a tree as dead if its status is "dead"
-Inventory2018$Alive<-ifelse(Inventory2018$StateDesc!="Dead",yes=1,no=0)
-DB_mortality<-aggregate(Alive~Block+Plot+CodeSp,
-                        data=Inventory2018,
-                        FUN=mean)
+## count a tree as alive if its status is not "dead"
+## include a dummy column to tally up all planted trees within the inner 36
+Inventory2018_center$Alive<-ifelse(Inventory2018_center$StateDesc!="Dead",yes=1,no=0)
+Inventory2018_center$Planted<-1
 
-write.csv(DB_mortality,"IDENTMontrealData/mortality_2018.csv")
+## output mortality summary statistics
+mortality_2018<-aggregate(cbind(Alive,Planted)~Block+Plot+CodeSp,
+                          data=Inventory2018_center,
+                          FUN=sum)
+
+write.csv(mortality_2018,"IDENTMontrealData/mortality_2018.csv")
