@@ -199,13 +199,13 @@ lfbase_acq_sp<-ggplot(data=species_means,
 ## PC2 from the trait data (mostly LDMC)
 ## is actually correlated with shade tolerance!
 ## but PC2 is a poor predictor of light at the crown base
-ggplot(data=species_means,
-       aes(x=shade_tol,y=PC2,label=Species))+
-  geom_smooth(method="lm")+geom_text()+
-  theme_bw()+
-  theme(text=element_text(size=15))+
-  labs(x="Shade tolerance",
-       y="PC2")
+# ggplot(data=species_means,
+#        aes(x=shade_tol,y=PC2,label=Species))+
+#   geom_smooth(method="lm")+geom_text()+
+#   theme_bw()+
+#   theme(text=element_text(size=15))+
+#   labs(x="Shade tolerance",
+#        y="PC2")
 
 ########################################
 ## examining simple relationships within the bivariate data
@@ -215,10 +215,10 @@ ggplot(data=species_means,
 ## but the living fraction of the crown increases
 ## and the light at the crown base increases a bit?
 
-ggplot(self_pruning,
-       aes(x=qDTM,
-           y=logLightBase,
-           color=Species))+
+qDTM_plastic<-ggplot(self_pruning,
+                     aes(x=qDTM,
+                         y=logLightBase,
+                         color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=15))
@@ -253,10 +253,10 @@ neighbor_acq_plastic<-ggplot(self_pruning,
 # neighbor_acq_plastic
 # dev.off()
 
-ggplot(self_pruning,
-       aes(x=acq_dist_abs,
-           y=logLightBase,
-           color=Species))+
+acq_dist_plastic<-ggplot(self_pruning,
+                      aes(x=acq_dist_abs,
+                          y=logLightBase,
+                          color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=15))+
@@ -367,8 +367,8 @@ NCI_slopes<-ggplot(data=species_means,
   #      y="Change in log(LF) at base with NCI")
   labs(x="Tendance acquisitive (CP1)",
        y=expression(paste("Pentes : log(",italic(L[base]),") ~ NCI")))
-ggsave(filename = "Images/NCI_slopes_FR.png",NCI_slopes,
-       dpi=600,width = 6,height=5)
+# ggsave(filename = "Images/NCI_slopes_FR.png",NCI_slopes,
+#        dpi=600,width = 6,height=5)
 
 height_slopes<-ggplot(data=species_means,
                       aes(x=focal_acq,
