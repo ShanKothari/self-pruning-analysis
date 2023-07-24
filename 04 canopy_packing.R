@@ -2,6 +2,10 @@ setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 
 library(mosaic)
 
+## to dos:
+## calculate functional diversity/heterogeneity in shade tolerance
+## at the plot scale for complementarity analyses
+
 ########################################
 ## data on crown shape and size
 
@@ -11,11 +15,19 @@ self_pruning_list<-split(self_pruning,f = self_pruning$Plot)
 self_pruning_comp<-unlist(lapply(self_pruning_list,
                                  function(plot) paste(unique(plot$Species),collapse="|")))
 
+## read in mortality data
+DB_mortality<-read.csv("IDENTMontrealData/mortality_2018.csv")
+DB_mortality$plot_sp<-paste(DB_mortality$Block,
+                             DB_mortality$Plot,
+                             DB_mortality$CodeSp,
+                             sep="_")
+
+## parameters from Purves et al. paper
 C0B<-0.196
 C1B<-0.511
 
 species.list<-c("ABBA","ACRU","ACSA","BEAL","BEPA","LALA",
-           "PIGL","PIRE","PIRU","PIST","QURU","THOC")
+                "PIGL","PIRE","PIRU","PIST","QURU","THOC")
 Tj<-c(0.278,0.536,0.560,0.592,0.435,0.308,
       0.278,0.287,0.324,0.417,0.538,0.251)
 
@@ -27,19 +39,22 @@ self_pruning$Bj<-crown_shape$Bj[match(self_pruning$Species,crown_shape$species)]
 ######################################
 ## calculate canopy packing
 
+## formulas for area/volume of crown
 crown_area<-function(CD,CR,beta){(CR*CD)/(beta+1)}
 crown_vol<-function(CD,CR,beta){(pi*CR^2*CD)/(2*beta+1)}
 
+## through rows of the self-pruning data
 self_pruning$crown_vol<-sapply(1:nrow(self_pruning),
                                function(i) {
-                                 beta_i<-self_pruning$Bj[i]
                                  crown_i<-crown_vol(CD=self_pruning$CrownDepth[i]/100,
                                                     CR=self_pruning$CR_average[i]/100,
-                                                    beta=beta_i)
+                                                    beta=self_pruning$Bj[i])
                                  return(crown_i)
                                })
 
-self_pruning$crown_vol[is.na(self_pruning$crown_vol)]<-0
+
+## NOTE: does this aggregation account for unequal numbers of planted individuals
+## of various species within a plot?
 
 crown_vol_agg<-aggregate(self_pruning$crown_vol,
                          by=list(self_pruning$Block,
@@ -51,11 +66,21 @@ crown_vol_agg<-aggregate(self_pruning$crown_vol,
 colnames(crown_vol_agg)<-c("Block","Plot","Species","Richness","crown_vol")
 crown_vol_agg$sp_comp<-self_pruning_comp[match(crown_vol_agg$Plot,names(self_pruning_comp))]
 
+## add mortality rate column and multiply volume by mortality rate
+crown_vol_agg$plot_sp<-paste(crown_vol_agg$Block,
+                             crown_vol_agg$Plot,
+                             crown_vol_agg$Species,
+                             sep="_")
+
+crown_vol_agg$prop_alive<-DB_mortality$Alive[match(crown_vol_agg$plot_sp,
+                                                   DB_mortality$plot_sp)]
+crown_vol_agg$crown_vol_adj<-crown_vol_agg$crown_vol*crown_vol_agg$prop_alive
+
 crown_vol_agg$mono.means<-apply(crown_vol_agg,1,
                                 function(x) {
-                                  crown_vol_agg$crown_vol[crown_vol_agg$sp_comp==x["Species"] & crown_vol_agg$Block==x["Block"]]
+                                  crown_vol_agg$crown_vol_adj[crown_vol_agg$sp_comp==x["Species"] & crown_vol_agg$Block==x["Block"]]
                                 })
-crown_vol_agg$OY<-crown_vol_agg$crown_vol-crown_vol_agg$mono.means
+crown_vol_agg$OY<-crown_vol_agg$crown_vol_adj-crown_vol_agg$mono.means
 
 crown_OY_plot<-aggregate(crown_vol_agg$OY,
                          by=list(crown_vol_agg$Plot,
@@ -125,7 +150,7 @@ calculate_CCI<-function(two_trees){
   CCI_3D<-1-2*overlap_3D/(vol1+vol2)
   CCI_min_3D<-1-overlap_3D/min(c(vol1,vol2))
   
-  ## here I make a crucial assumption that I need to revisit:
+  ## here I make a crucial assumption:
   ## if both trees are dead, return NA for all CCI metric
   ## if one tree is dead, return 1 (perfect complementarity)
   
@@ -159,11 +184,8 @@ calculate_CCI<-function(two_trees){
   return(unlist(CCI_list))
 }
 
-## testing
-self_pruning_alive<-self_pruning[-which(is.na(self_pruning$CrownDepth)),]
-
-tree_samp_1<-self_pruning_alive[sample(1:nrow(self_pruning_alive),1),]
-tree_samp_2<-self_pruning_alive[sample(1:nrow(self_pruning_alive),1),]
+tree_samp_1<-self_pruning[sample(1:nrow(self_pruning),1),]
+tree_samp_2<-self_pruning[sample(1:nrow(self_pruning),1),]
 
 tree_list<-list(list(CRmax=tree_samp_1$CR_average,
                      CD=tree_samp_1$CrownDepth,
@@ -180,12 +202,7 @@ calculate_CCI(tree_list)
 ## applying the complementarity function
 ## to calculate the complementarity of each plot
 
-self_pruning_mod<-self_pruning
-self_pruning_mod$CR_average[is.na(self_pruning_mod$CR_average)]<-0
-self_pruning_mod$CrownDepth[is.na(self_pruning_mod$CrownDepth)]<-0
-self_pruning_mod$HeightBase[is.na(self_pruning_mod$HeightBase)]<-0
-
-self_pruning_split<-split(self_pruning_mod,f = ~Block+Plot)
+self_pruning_split<-split(self_pruning,f = ~Block+Plot)
 
 ## this procedure needs to be updated because mortalities
 ## in the self-pruning data are not "true" mortalities
