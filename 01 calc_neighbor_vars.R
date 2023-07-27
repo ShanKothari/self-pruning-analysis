@@ -172,4 +172,4 @@ mortality_2018<-aggregate(cbind(num_alive,num_planted)~Block+Plot+CodeSp,
                           data=Inventory2018_center,
                           FUN=sum)
 
-write.csv(mortality_2018,"IDENTMontrealData/mortality_2018.csv")
+write.csv(mortality_2018,"IDENTMontrealData/mortality_2018.csv",row.names=F)
