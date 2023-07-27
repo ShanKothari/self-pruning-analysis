@@ -46,13 +46,9 @@ crown_area<-function(CD,CR,beta){(CR*CD)/(beta+1)}
 crown_vol<-function(CD,CR,beta){(pi*CR^2*CD)/(2*beta+1)}
 
 ## calculate for each row of the self-pruning data
-self_pruning$crown_vol<-sapply(1:nrow(self_pruning),
-                               function(i) {
-                                 crown_i<-crown_vol(CD=self_pruning$CrownDepth[i]/100,
-                                                    CR=self_pruning$CR_average[i]/100,
-                                                    beta=self_pruning$Bj[i])
-                                 return(crown_i)
-                               })
+self_pruning$crown_vol<-crown_vol(self_pruning$CrownDepth/100,
+                                  self_pruning$CR_average/100,
+                                  self_pruning$Bj)
 
 ## read in mortality data
 mortality_2018<-read.csv("IDENTMontrealData/mortality_2018.csv")
@@ -71,7 +67,7 @@ mortality_2018$prop_alive<-mortality_2018$num_alive/mortality_2018$num_planted
 
 ## take the mean crown volume for each species in each plot
 crown_vol_agg<-aggregate(crown_vol~Block+Plot+Species+nbsp,
-                         data=self_pruning,FUN=mean,na.rm=T)
+                         data=self_pruning,FUN=mean)
 
 colnames(crown_vol_agg)<-c("Block","Plot","Species","Richness","crown_vol")
 
@@ -114,7 +110,31 @@ crown_OY_plot$OY_m3_m2<-crown_OY_plot$OY/9
 ##########################################
 ## simulations of canopy packing holding crown depth constant
 
-for(i in unique(self_pruning$UniquePlot)){
+## need to investigate why these simulated values
+## are so much higher than the actual values...
+
+sim_crown_vols<-list()
+
+for(i in crown_vol_agg$plot_sp){
+
+  plot_sp_split<-strsplit(i,"_")[[1]]
+  block<-plot_sp_split[1]
+  plot<-plot_sp_split[2]
+  species<-plot_sp_split[3]
+  
+  mix_ids<-which(self_pruning$Block==block & self_pruning$Plot==plot & self_pruning$Species==species)
+  mono_ids<-which(self_pruning$Block==block & self_pruning$Plot==species & self_pruning$Species==species)
+
+  sim_plot_sp<-data.frame(CR_average=sample(self_pruning$CR_average[mix_ids],
+                                            size=100,replace=T),
+                          CrownDepth=sample(self_pruning$CrownDepth[mono_ids],
+                                            size=100,replace=T),
+                          Bj=sample(self_pruning$Bj[mono_ids],
+                                    size=100,replace=T))
+  
+  sim_crown_vols[i]<-mean(crown_vol(sim_plot_sp$CR_average/100,
+                                    sim_plot_sp$CrownDepth/100,
+                                    sim_plot_sp$Bj))
   
 }
 
@@ -166,13 +186,13 @@ points(y2~x2,col="red")
 ######################################
 ## function to calculate complementarity
 
-calculate_CCI<-function(two_trees){
-  area1<-crown_area(CD=two_trees[[1]]$CD,CR=two_trees[[1]]$CRmax,beta=two_trees[[1]]$Bj)
-  area2<-crown_area(CD=two_trees[[2]]$CD,CR=two_trees[[2]]$CRmax,beta=two_trees[[2]]$Bj)
+calculate_CCI<-function(tree1,tree2){
+  area1<-crown_area(CD=tree1$CD,CR=tree1$CRmax,beta=tree1$Bj)
+  area2<-crown_area(CD=tree2$CD,CR=tree2$CRmax,beta=tree2$Bj)
   overlap_2D<-calculate_2D_overlap(two_trees)
   
-  vol1<-crown_vol(CD=two_trees[[1]]$CD,CR=two_trees[[1]]$CRmax,beta=two_trees[[1]]$Bj)
-  vol2<-crown_vol(CD=two_trees[[2]]$CD,CR=two_trees[[2]]$CRmax,beta=two_trees[[2]]$Bj)
+  vol1<-crown_vol(CD=tree1$CD,CR=tree1$CRmax,beta=tree1$Bj)
+  vol2<-crown_vol(CD=tree2$CD,CR=tree2$CRmax,beta=tree2$Bj)
   overlap_3D<-calculate_3D_overlap(two_trees)
   
   CCI_2D<-1-2*overlap_2D/(area1+area2)
@@ -199,6 +219,9 @@ calculate_CCI<-function(two_trees){
   if(dead_trees==1){
     CCI_min_2D<-1
     CCI_min_3D<-1
+    
+    ## no need to define CCI_2D and CCI_3D explicitly
+    ## because they can be calculated
   }
   
   CCI_list<-list(dead_trees=dead_trees,
@@ -218,16 +241,16 @@ calculate_CCI<-function(two_trees){
 tree_samp_1<-self_pruning[sample(1:nrow(self_pruning),1),]
 tree_samp_2<-self_pruning[sample(1:nrow(self_pruning),1),]
 
-tree_list<-list(list(CRmax=tree_samp_1$CR_average,
-                     CD=tree_samp_1$CrownDepth,
-                     CB=tree_samp_1$HeightBase,
-                     Bj=tree_samp_1$Bj),
-                list(CRmax=tree_samp_2$CR_average,
-                     CD=tree_samp_2$CrownDepth,
-                     CB=tree_samp_2$HeightBase,
-                     Bj=tree_samp_2$Bj))
+tree_list_1<-list(CRmax=tree_samp_1$CR_average,
+                  CD=tree_samp_1$CrownDepth,
+                  CB=tree_samp_1$HeightBase,
+                  Bj=tree_samp_1$Bj)
+tree_list_2<-list(CRmax=tree_samp_2$CR_average,
+                  CD=tree_samp_2$CrownDepth,
+                  CB=tree_samp_2$HeightBase,
+                  Bj=tree_samp_2$Bj))
 
-calculate_CCI(tree_list)
+calculate_CCI(tree_list_1,tree_list_2)
 
 #####################################
 ## applying the complementarity function
@@ -257,8 +280,7 @@ plot_CCI<-function(plot) {
                  CB=plot$HeightBase[plot_combos[i,2]],
                  CD=plot$CrownDepth[plot_combos[i,2]],
                  Bj=plot$Bj[plot_combos[i,2]])
-    tree_list<-list(tree_a,tree_b)
-    tree_pair_CCI[[i]]<-calculate_CCI(tree_list)
+    tree_pair_CCI[[i]]<-calculate_CCI(tree_a,tree_b)
   }
   
   tree_pair_df<-do.call(rbind.data.frame, tree_pair_CCI)
