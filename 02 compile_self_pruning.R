@@ -81,7 +81,14 @@ self_pruning$zenith[which(!is.na(base_times$day))]<-base_times_angle$zenith
 
 ####################################
 ## produce new self-pruning and predictor variables
+
 self_pruning$CrownDepth<-self_pruning$HeightTop-self_pruning$HeightBase
+
+## temporary: remove four clearly incorrect data points
+## all ABBA from the same plot...
+negCD<-which(self_pruning$CrownDepth<0)
+self_pruning$CrownDepth[negCD]<-NA
+self_pruning$HeightBase[negCD]<-NA
 
 ## basal diameter is missing from one tree, which presumably died
 ## between Jon's measurements and the fall survey

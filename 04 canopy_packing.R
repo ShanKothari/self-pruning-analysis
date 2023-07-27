@@ -11,23 +11,22 @@ library(mosaic)
 
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 
+## a bit of temporary linear interpolation to deal with
+## the four previously removed, clearly incorrect data points
+## all ABBA
+negCD<-which(is.na(self_pruning$HeightBase) & !is.na(self_pruning$HeightTop))
+
+CD_pred_model<-lm(CrownDepth~HeightTop+neighbor_acq,
+                  data=self_pruning[self_pruning$Species=="ABBA",])
+self_pruning$CrownDepth[negCD]<-predict(CD_pred_model,
+                                        newdata = self_pruning[negCD,])
+self_pruning$HeightBase[negCD]<-self_pruning$HeightTop[negCD]-self_pruning$CrownDepth[negCD]
+
 ## get indicators of species composition
-## in case these are needed later?
 self_pruning_list<-split(self_pruning,f = self_pruning$Plot)
 self_pruning_comp<-unlist(lapply(self_pruning_list,
                                  function(plot) paste(unique(plot$Species),collapse="|")))
-
-## read in mortality data
-mortality_2018<-read.csv("IDENTMontrealData/mortality_2018.csv")
-mortality_2018$plot_sp<-paste(mortality_2018$Block,
-                              mortality_2018$Plot,
-                              mortality_2018$CodeSp,
-                              sep="_")
-
-## proportion of species planted within the inner 36 and
-## proportion of planted individuals of the species still alive
-mortality_2018$prop_planted<-mortality_2018$num_planted/36
-mortality_2018$prop_alive<-mortality_2018$num_alive/mortality_2018$num_planted
+self_pruning$sp_comp<-self_pruning_comp[match(self_pruning$Plot,names(self_pruning_comp))]
 
 ## parameters from Purves et al. paper
 C0B<-0.196
@@ -54,6 +53,18 @@ self_pruning$crown_vol<-sapply(1:nrow(self_pruning),
                                                     beta=self_pruning$Bj[i])
                                  return(crown_i)
                                })
+
+## read in mortality data
+mortality_2018<-read.csv("IDENTMontrealData/mortality_2018.csv")
+mortality_2018$plot_sp<-paste(mortality_2018$Block,
+                              mortality_2018$Plot,
+                              mortality_2018$CodeSp,
+                              sep="_")
+
+## proportion of species planted within the inner 36 and
+## proportion of planted individuals of the species still alive
+mortality_2018$prop_planted<-mortality_2018$num_planted/36
+mortality_2018$prop_alive<-mortality_2018$num_alive/mortality_2018$num_planted
 
 ######################################
 ## calculate canopy packing
@@ -90,10 +101,22 @@ mono_match<-match(crown_vol_agg$block_sp,crown_vol_agg$block_plot)
 crown_vol_agg$crown_vol_mono<-crown_vol_agg$crown_vol[mono_match]
 crown_vol_agg$prop_alive_mono<-crown_vol_agg$prop_alive[mono_match]
 
+## aggregating overyielding to the species x plot level
+## rather than just individuals
 crown_vol_agg$OY<-with(crown_vol_agg,
                        crown_vol*num_alive-crown_vol_mono*num_planted*prop_alive_mono)
+crown_vol_agg$OY[which(crown_vol_agg$Richness==1)]<-NA
 
-crown_OY_plot<-aggregate(OY~Plot+Richness,data=crown_vol_agg,FUN=sum)
+## and aggregating to the whole plot (inner 6 x 6 trees)
+crown_OY_plot<-aggregate(OY~Block+Plot+Richness,data=crown_vol_agg,FUN=sum)
+crown_OY_plot$OY_m3_m2<-crown_OY_plot$OY/9
+
+##########################################
+## simulations of canopy packing holding crown depth constant
+
+for(i in unique(self_pruning$UniquePlot)){
+  
+}
 
 ## to do:
 ## add measures of functional diversity and
