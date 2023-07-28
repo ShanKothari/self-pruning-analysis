@@ -189,11 +189,11 @@ points(y2~x2,col="red")
 calculate_CCI<-function(tree1,tree2){
   area1<-crown_area(CD=tree1$CD,CR=tree1$CRmax,beta=tree1$Bj)
   area2<-crown_area(CD=tree2$CD,CR=tree2$CRmax,beta=tree2$Bj)
-  overlap_2D<-calculate_2D_overlap(two_trees)
+  overlap_2D<-calculate_2D_overlap(list(tree1,tree2))
   
   vol1<-crown_vol(CD=tree1$CD,CR=tree1$CRmax,beta=tree1$Bj)
   vol2<-crown_vol(CD=tree2$CD,CR=tree2$CRmax,beta=tree2$Bj)
-  overlap_3D<-calculate_3D_overlap(two_trees)
+  overlap_3D<-calculate_3D_overlap(list(tree1,tree2))
   
   CCI_2D<-1-2*overlap_2D/(area1+area2)
   CCI_min_2D<-1-overlap_2D/min(c(area1,area2))

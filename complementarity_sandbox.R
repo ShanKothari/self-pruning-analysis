@@ -3,6 +3,10 @@
 ## props_alive is a vector of proportions of planted trees of the species that survive
 ## species, props_planted, and props_alive MUST be in the same order
 
+## it's not strictly necessary to sample trees like this as pairs
+## rather than pairing them up later, but I find that it makes things
+## more intuitive, even if a bit more complicated later on
+
 plot_combos<-function(species,props_planted,props_alive,nsamp=100){
   
   if(sum(props_planted)!=1){
@@ -48,16 +52,52 @@ plot_CCI<-function(sp_plot,mortality_plot){
                         props_planted=mortality_plot$prop_planted,
                         props_alive=mortality_plot$prop_alive)
   
+  outcome_list<-list()
+  
   for(i in 1:nrow(sp_pairs)){
     
+    print(i)
     sp1<-sp_pairs[i,1]
     sp2<-sp_pairs[i,2]
+    
+    dead_trees<-sum(is.na(c(sp1,sp2)))
+    
+    if(dead_trees==2){
+      outcome_list[[i]]<-NA
+      next
+    }
+    
+    if(dead_trees==1){
+      ## this is not correct but I will modify it
+      outcome_list[[i]]<-NA
+      next
+    }
+    
     sp_plot_sub1<-sp_plot[sp_plot$Species==sp1,]
     sp_plot_sub2<-sp_plot[sp_plot$Species==sp2,]
+    sample1<-sample(1:nrow(sp_plot_sub1),size=1)
+    sample2<-sample(1:nrow(sp_plot_sub2),size=1)
     
-    sample1<-sample(1:nrow(sp_plot_sub1),sp_pairs[i,1])
-    sample2<-sample(1:nrow(sp_plot_sub2),sp_pairs[i,2])
+    ## if the same individual is sampled twice above
+    ## redo the sampling
+    while(sp1==sp2 & sample1==sample2){
+      sample1<-sample(1:nrow(sp_plot_sub1),size=1)
+      sample2<-sample(1:nrow(sp_plot_sub2),size=1)
+    }
+    
+    tree_a<-list(CRmax=sp_plot_sub1$CR_average[sample1],
+                 CB=sp_plot_sub1$HeightBase[sample1],
+                 CD=sp_plot_sub1$CrownDepth[sample1],
+                 Bj=sp_plot_sub1$Bj[sample1])
+    
+    tree_b<-list(CRmax=sp_plot_sub2$CR_average[sample2],
+                 CB=sp_plot_sub2$HeightBase[sample2],
+                 CD=sp_plot_sub2$CrownDepth[sample2],
+                 Bj=sp_plot_sub2$Bj[sample2])
+                 
+    outcome_list[[i]]<-calculate_CCI(tree_a,tree_b)
   }
   
+  return(outcome_list)
    
 }
