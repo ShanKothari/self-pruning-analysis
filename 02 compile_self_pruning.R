@@ -15,6 +15,7 @@ library(fishmethods)
 ## manual changes to data files sent by Jon:
 ## corrected "DEAd" to "DEAD" for A	4N8	4	THOC
 ## fixed typo in base measurement time for D	2N7	2	LALA
+## added correct values for ABBA block D 2NR7A
 
 #######################################
 ## read and clean data
@@ -84,12 +85,6 @@ self_pruning$zenith[which(!is.na(base_times$day))]<-base_times_angle$zenith
 
 self_pruning$CrownDepth<-self_pruning$HeightTop-self_pruning$HeightBase
 
-## temporary: remove four clearly incorrect data points
-## all ABBA from the same plot...
-negCD<-which(self_pruning$CrownDepth<0)
-self_pruning$CrownDepth[negCD]<-NA
-self_pruning$HeightBase[negCD]<-NA
-
 ## basal diameter is missing from one tree, which presumably died
 ## between Jon's measurements and the fall survey
 self_pruning$BasalDiam<-as.numeric(self_pruning$BasalDiam)
@@ -154,18 +149,36 @@ species_means$leaf_habit<- trait_summary$leaf_habit[match(species_means$Species,
 leaf_habit_cols<-c("Deciduous"="chocolate4",
                    "Evergreen"="#60941a")
 
+st_acq_sp<-ggplot(data=species_means,
+                     aes(x=shade_tol,
+                         y=focal_acq,
+                         label=Species))+
+  geom_smooth(method="lm")+
+  geom_text(size=5,aes(color=leaf_habit))+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  guides(color="none")+
+  scale_color_manual(values = leaf_habit_cols)+
+  labs(x="Shade tolerance",
+       y="Acquisitiveness")
+ggsave(filename = "Images/st_acq_sp.png",plot = st_acq_sp,
+       width=6,height=5,units="in",dpi=600)
+
 lfbase_ll_sp<-ggplot(data=species_means,
                      aes(x=log(leaf_lifespan),
                          y=logLightBase,
                          label=Species))+
-  geom_smooth(method="lm")+geom_text(size=5)+
+  geom_smooth(method="lm")+
+  geom_text(size=5,aes(color=leaf_habit))+
   theme_bw()+
   theme(text=element_text(size=20))+
   coord_cartesian(ylim=c(-6.5,-2.5))+
- labs(x="log(leaf lifespan [months])",
-      y="log(light fraction) at crown base")
-# ggsave(filename = "Images/lfbase_ll_sp_FR.png",plot = lfbase_ll_sp,
-#        width=6,height=5,units="in",dpi=600)
+  guides(color="none")+
+  scale_color_manual(values = leaf_habit_cols)+
+  labs(x="log(leaf lifespan [months])",
+       y=expression(paste("log (",italic(L[base]),")")))
+ggsave(filename = "Images/lfbase_ll_sp.png",plot = lfbase_ll_sp,
+       width=6,height=5,units="in",dpi=600)
 
 lfbase_st_sp<-ggplot(data=species_means,
                      aes(x=shade_tol,
@@ -178,12 +191,12 @@ lfbase_st_sp<-ggplot(data=species_means,
   coord_cartesian(ylim=c(-6.5,-2.5))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
-  labs(x="Tol\u00e9rance \u00e0 l'ombre",
+  # labs(x="Tol\u00e9rance \u00e0 l'ombre",
+  #      y=expression(paste("log (",italic(L[base]),")")))
+  labs(x="Shade tolerance",
        y=expression(paste("log (",italic(L[base]),")")))
-  # labs(x="Shade tolerance",
-  #      y="log(light fraction) at crown base")
-# ggsave(filename = "Images/lfbase_st_sp_FR.png",plot = lfbase_st_sp,
-#        width=6,height=5,units="in",dpi=600)
+ggsave(filename = "Images/lfbase_st_sp_FR.png",plot = lfbase_st_sp,
+       width=6,height=5,units="in",dpi=600)
 
 lfbase_acq_sp<-ggplot(data=species_means,
                       aes(x=focal_acq,
@@ -196,10 +209,10 @@ lfbase_acq_sp<-ggplot(data=species_means,
   coord_cartesian(ylim=c(-6.5,-2.5))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
-  labs(x="Tendance acquisitive (CP1)",
+  # labs(x="Tendance acquisitive (CP1)",
+  #      y=expression(paste("log (",italic(L[base]),")")))
+  labs(x="Focal tree acquisitiveness",
        y=expression(paste("log (",italic(L[base]),")")))
-  # labs(x="Focal tree acquisitiveness",
-  #      y="log(light fraction) at crown base")
 # ggsave(filename = "Images/lfbase_acq_sp_FR.png", plot = lfbase_acq_sp,
 #        width=6,height=5,units="in",dpi=600)
 
@@ -253,7 +266,7 @@ neighbor_acq_plastic<-ggplot(self_pruning,
   theme_bw()+
   theme(text=element_text(size=15))+
   labs(x="Neighbor acquisitiveness",
-       y="log(light fraction) at crown base")+
+       y=expression(paste("log (",italic(L[base]),")")))+
   guides(color="none")
 
 # png("Images/lfbase_nacq_ind.png",width=7,height=5,units="in",res=150)
@@ -394,8 +407,10 @@ neighbor_acq_slopes<-ggplot(data=species_means,
   geom_smooth(method="lm")+geom_text()+
   theme_bw()+
   theme(text=element_text(size=15))+
-  labs(x="Functional identity",
-       y="Change in log(LF) at base with neighbor acquisitiveness")
+  labs(x="Focal acquisitiveness",
+       y=expression(paste("Slopes: log(",italic(L[base]),") ~ neighbor acquisitiveness")))
+ggsave(filename = "Images/neighbor_acq_slopes.png",neighbor_acq_slopes,
+       dpi=600,width = 6,height=5)
 
 light_top_slopes<-ggplot(data=species_means,
                          aes(x=focal_acq,
