@@ -17,6 +17,21 @@ colnames(traits)<-c("SpeciesCode","LL","LDMC","N","SLA","SRL","WD","shade_tol")
 ## 281: Hattermann D, et al https://gepris.dfg.de/gepris/projekt/260851423?language=en&selectedSubTab=2
 traits$LDMC[traits$SpeciesCode=="TICO"]<-344.177
 
+## linear regression interpolation of missing data
+## via core set of five traits
+## add interpolated values to summary dataset
+traits_comp<-complete(mice(traits[,c("LDMC","N","SRL","SLA","WD")],
+                           method = "norm.predict",maxit=1))
+traits$SRL[traits$SpeciesCode=="PIOM"]<-traits_comp$SRL[traits$SpeciesCode=="PIOM"]
+traits$LDMC[traits$SpeciesCode=="PIOM"]<-traits_comp$LDMC[traits$SpeciesCode=="PIOM"]
+
+## z-standardize the core set of five traits
+traits$LDMC<-(traits$LDMC-mean(traits$LDMC))/sd(traits$LDMC)
+traits$N<-(traits$N-mean(traits$N))/sd(traits$N)
+traits$SRL<-(traits$SRL-mean(traits$SRL))/sd(traits$SRL)
+traits$SLA<-(traits$SLA-mean(traits$SLA))/sd(traits$SLA)
+traits$WD<-(traits$WD-mean(traits$WD))/sd(traits$WD)
+
 ## just extract whether species are deciduous or evergreen
 ## for plotting purposes (but not for the PCA)
 leaf_habit<-ifelse(traits$LL>12,
@@ -25,19 +40,19 @@ leaf_habit<-ifelse(traits$LL>12,
 
 ## nativeness for plotting purposes
 ## add below (so we can de-emphasize non-native species)
+non_native<-ifelse(traits$SpeciesCode %in% c("ACPL","LADE","PIOM","PIRU",
+                                             "PISY","QURO","TICO"),
+                   yes="non_native",no="native")
 
 ## subset traits (no LL or shade tolerance) in preparation for PCA
 traits_sub<-traits[,-which(colnames(traits) %in% c("SpeciesCode","LL","shade_tol"))]
 rownames(traits_sub)<-traits$SpeciesCode
 
-## linear regression interpolation of missing data
-## add interpolated values to summary dataset
-traits_sub_comp<-complete(mice(traits_sub,method = "norm.predict",maxit=1))
-traits$SRL[traits$SpeciesCode=="PIOM"]<-traits_sub_comp$SRL[rownames(traits_sub_comp)=="PIOM"]
-traits$LDMC[traits$SpeciesCode=="PIOM"]<-traits_sub_comp$LDMC[rownames(traits_sub_comp)=="PIOM"]
+## do PCA of traits, extract scores and loadings
+## no need to use scaling in the function
+## because traits are already scaled
 
-## do scaled PCA of traits, extract scores and loadings
-trait_pca<-prcomp(traits_sub_comp,scale. = T)
+trait_pca<-prcomp(traits_sub)
 trait_pca_scores<-data.frame(species = rownames(trait_pca$x),
                              trait_pca$x,
                              leaf_habit=leaf_habit)
