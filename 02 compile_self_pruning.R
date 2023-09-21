@@ -161,8 +161,8 @@ st_acq_sp<-ggplot(data=species_means,
   scale_color_manual(values = leaf_habit_cols)+
   labs(x="Shade tolerance",
        y="Acquisitiveness")
-ggsave(filename = "Images/st_acq_sp.png",plot = st_acq_sp,
-       width=6,height=5,units="in",dpi=600)
+# ggsave(filename = "Images/st_acq_sp.png",plot = st_acq_sp,
+#        width=6,height=5,units="in",dpi=600)
 
 lfbase_ll_sp<-ggplot(data=species_means,
                      aes(x=log(leaf_lifespan),
@@ -177,8 +177,8 @@ lfbase_ll_sp<-ggplot(data=species_means,
   scale_color_manual(values = leaf_habit_cols)+
   labs(x="log(leaf lifespan [months])",
        y=expression(paste("log (",italic(L[base]),")")))
-ggsave(filename = "Images/lfbase_ll_sp.png",plot = lfbase_ll_sp,
-       width=6,height=5,units="in",dpi=600)
+# ggsave(filename = "Images/lfbase_ll_sp.png",plot = lfbase_ll_sp,
+#        width=6,height=5,units="in",dpi=600)
 
 lfbase_st_sp<-ggplot(data=species_means,
                      aes(x=shade_tol,
@@ -195,8 +195,8 @@ lfbase_st_sp<-ggplot(data=species_means,
   #      y=expression(paste("log (",italic(L[base]),")")))
   labs(x="Shade tolerance",
        y=expression(paste("log (",italic(L[base]),")")))
-ggsave(filename = "Images/lfbase_st_sp_FR.png",plot = lfbase_st_sp,
-       width=6,height=5,units="in",dpi=600)
+# ggsave(filename = "Images/lfbase_st_sp_FR.png",plot = lfbase_st_sp,
+#        width=6,height=5,units="in",dpi=600)
 
 lfbase_acq_sp<-ggplot(data=species_means,
                       aes(x=focal_acq,
@@ -409,8 +409,8 @@ neighbor_acq_slopes<-ggplot(data=species_means,
   theme(text=element_text(size=15))+
   labs(x="Focal acquisitiveness",
        y=expression(paste("Slopes: log(",italic(L[base]),") ~ neighbor acquisitiveness")))
-ggsave(filename = "Images/neighbor_acq_slopes.png",neighbor_acq_slopes,
-       dpi=600,width = 6,height=5)
+# ggsave(filename = "Images/neighbor_acq_slopes.png",neighbor_acq_slopes,
+#        dpi=600,width = 6,height=5)
 
 light_top_slopes<-ggplot(data=species_means,
                          aes(x=focal_acq,
