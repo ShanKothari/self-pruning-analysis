@@ -47,8 +47,10 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
 }
 
 ## grab basal areas of neighbors
-## within radius of 2 m
-neighbor.area<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=1.5)
+## within radius of 1.1 m
+## this is 90th percentile of measured crown radii
+## (concatenating CR1, CR2, CR3, CR4 from self pruning data)
+neighbor.area<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=1.1)
 
 ## delete focal trees in plots we don't care about
 ## based on plot composition identifiers
@@ -173,3 +175,24 @@ mortality_2018<-aggregate(cbind(num_alive,num_planted)~Block+Plot+CodeSp,
                           FUN=sum)
 
 write.csv(mortality_2018,"IDENTMontrealData/mortality_2018.csv",row.names=F)
+
+#########################################
+## calculate plot-level functional diversity
+## and heterogeneity in shade-tolerance
+
+mortality_2018$UniquePlotID<-paste(mortality_2018$Block,
+                                   mortality_2018$Plot,
+                                   sep="_")
+planted_comm<-matrify(mortality_2018[,c("UniquePlotID","CodeSp","num_planted")])
+
+## functional dispersion in PC1
+## and heterogeneity in shade tolerance
+plot_fdis<-fdisp(dist(core_traits),a = as.matrix(planted_comm))$FDis
+plot_sth<-fdisp(dist(setNames(trait_summary$shade_tol,trait_summary$SpeciesCode)),
+                 a = as.matrix(planted_comm))$FDis
+
+plot_var<-data.frame(UniquePlotID=rownames(planted_comm),
+                     FDis=plot_fdis,
+                     STH=plot_sth)
+
+write.csv(plot_var,"IDENTMontrealData/plot_vars.csv",row.names=F)
