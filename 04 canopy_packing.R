@@ -132,13 +132,6 @@ crown_vol_agg$sim_vol<-unlist(sim_crown_vols)
 crown_vol_agg$sim_vol_live<-crown_vol_agg$sim_vol*crown_vol_agg$prop_alive
 crown_vol_agg$total_sp_sim_vol<-crown_vol_agg$sim_vol_live*crown_vol_agg$num_planted
 
-## to do:
-## add measures of functional diversity and
-## heterogeneity in shade tolerance
-## (non-abundance weighted?)
-## test how much overyielding you get when holding
-## self-shading behavior constant (i.e. no plasticity)
-
 ######################################
 ## aggregating to the plot scale
 
@@ -169,6 +162,13 @@ crown_vol_plot$OY_sim[which(crown_vol_plot$Richness==1)]<-NA
 
 ## all values should be divided by 9 for analysis per m^2
 ## since upscaling was done to the 6 x 6 inner plot (no edge)
+
+## read in plot-level heterogeneity measures
+plot_vars<-read.csv("IDENTMontrealData/plot_vars.csv")
+
+crown_vol_plot$UniquePlotID<-paste(crown_vol_plot$Block,crown_vol_plot$Plot,sep="_")
+crown_vol_plot$FDis<-plot_vars$FDis[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
+crown_vol_plot$STH<-plot_vars$STH[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
 
 ######################################
 ## canopy complementarity sandbox
