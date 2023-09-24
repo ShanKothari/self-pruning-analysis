@@ -185,14 +185,25 @@ mortality_2018$UniquePlotID<-paste(mortality_2018$Block,
                                    sep="_")
 planted_comm<-matrify(mortality_2018[,c("UniquePlotID","CodeSp","num_planted")])
 
-## functional dispersion in PC1
-## and heterogeneity in shade tolerance
+## functional dispersion in traits
+## using Laliberte's FDis and Scheiner's qDTM
+## the latter is not richness-independent
 plot_fdis<-fdisp(dist(core_traits),a = as.matrix(planted_comm))$FDis
+plot.FTD<-FTD.comm(tdmat=dist(core_traits),
+                   spmat = as.matrix(planted_comm),
+                   abund=T)
+
+## and heterogeneity in shade tolerance
 plot_sth<-fdisp(dist(setNames(trait_summary$shade_tol,trait_summary$SpeciesCode)),
-                 a = as.matrix(planted_comm))$FDis
+                a = as.matrix(planted_comm))$FDis
+plot.FTD_STH<-FTD.comm(tdmat=dist(setNames(trait_summary$shade_tol,trait_summary$SpeciesCode)),
+                   spmat = as.matrix(planted_comm),
+                   abund=T)
 
-plot_var<-data.frame(UniquePlotID=rownames(planted_comm),
+plot_vars<-data.frame(UniquePlotID=rownames(planted_comm),
                      FDis=plot_fdis,
-                     STH=plot_sth)
+                     STH=plot_sth,
+                     FTD=plot.FTD$com.FTD$qDTM,
+                     FTD_STH=plot.FTD_STH$com.FTD$qDTM)
 
-write.csv(plot_var,"IDENTMontrealData/plot_vars.csv",row.names=F)
+write.csv(plot_vars,"IDENTMontrealData/plot_vars.csv",row.names=F)

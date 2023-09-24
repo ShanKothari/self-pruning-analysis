@@ -168,7 +168,7 @@ plot_vars<-read.csv("IDENTMontrealData/plot_vars.csv")
 
 crown_vol_plot$UniquePlotID<-paste(crown_vol_plot$Block,crown_vol_plot$Plot,sep="_")
 crown_vol_plot$FDis<-plot_vars$FDis[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
-crown_vol_plot$STH<-plot_vars$STH[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
+rown_vol_plot$FTD<-plot_vars$FTD[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
 
 ######################################
 ## canopy complementarity sandbox
