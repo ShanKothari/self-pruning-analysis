@@ -97,11 +97,9 @@ crown_vol_agg$total_sp_crown_vol<-crown_vol_agg$crown_vol_live*crown_vol_agg$num
 ##########################################
 ## simulations of canopy packing holding crown depth constant
 
-## need to investigate why these simulated values
-## are so much higher than the actual values...
+n_crowns<-250
 
 sim_crown_vols<-list()
-
 for(i in crown_vol_agg$plot_sp){
 
   plot_sp_split<-strsplit(i,"_")[[1]]
@@ -115,11 +113,11 @@ for(i in crown_vol_agg$plot_sp){
   ## draw crown radius from mixtures
   ## but crown depth from monocultures
   sim_plot_sp<-data.frame(CR_average=sample(self_pruning$CR_average[mix_ids],
-                                            size=100,replace=T),
+                                            size=n_crowns,replace=T),
                           CrownDepth=sample(self_pruning$CrownDepth[mono_ids],
-                                            size=100,replace=T),
+                                            size=n_crowns,replace=T),
                           Bj=sample(self_pruning$Bj[mono_ids],
-                                    size=100,replace=T))
+                                    size=n_crowns,replace=T))
   
   sim_crown_vols[i]<-mean(crown_vol(CD=sim_plot_sp$CrownDepth/100,
                                     CR=sim_plot_sp$CR_average/100,
@@ -127,10 +125,41 @@ for(i in crown_vol_agg$plot_sp){
   
 }
 
-## multiple mean volume by mixture mortality rate
+## testing sensitivity to bias caused by the
+## random matching of crown radius and crown depth
+null_sim_crown_vols<-list()
+for(i in crown_vol_agg$plot_sp){
+  
+  plot_sp_split<-strsplit(i,"_")[[1]]
+  block<-plot_sp_split[1]
+  plot<-plot_sp_split[2]
+  species<-plot_sp_split[3]
+  
+  mix_ids<-which(self_pruning$Block==block & self_pruning$Plot==plot & self_pruning$Species==species)
+  mono_ids<-which(self_pruning$Block==block & self_pruning$Plot==species & self_pruning$Species==species)
+  
+  ## draw crown radius and crown depth from mixtures
+  null_sim_plot_sp<-data.frame(CR_average=sample(self_pruning$CR_average[mix_ids],
+                                            size=n_crowns,replace=T),
+                          CrownDepth=sample(self_pruning$CrownDepth[mix_ids],
+                                            size=n_crowns,replace=T),
+                          Bj=sample(self_pruning$Bj[mono_ids],
+                                    size=n_crowns,replace=T))
+  
+  null_sim_crown_vols[i]<-mean(crown_vol(CD=null_sim_plot_sp$CrownDepth/100,
+                                    CR=null_sim_plot_sp$CR_average/100,
+                                    beta=null_sim_plot_sp$Bj))
+  
+}
+
+## multiply mean volume by mixture mortality rate
 crown_vol_agg$sim_vol<-unlist(sim_crown_vols)
 crown_vol_agg$sim_vol_live<-crown_vol_agg$sim_vol*crown_vol_agg$prop_alive
 crown_vol_agg$total_sp_sim_vol<-crown_vol_agg$sim_vol_live*crown_vol_agg$num_planted
+
+crown_vol_agg$null_sim_vol<-unlist(null_sim_crown_vols)
+crown_vol_agg$null_sim_vol_live<-crown_vol_agg$null_sim_vol*crown_vol_agg$prop_alive
+crown_vol_agg$total_sp_null_sim_vol<-crown_vol_agg$null_sim_vol_live*crown_vol_agg$num_planted
 
 ######################################
 ## aggregating to the plot scale
@@ -141,14 +170,17 @@ crown_vol_agg$OY_actual<-with(crown_vol_agg,
                               num_planted*(crown_vol_live-crown_vol_mono_live))
 crown_vol_agg$OY_sim<-with(crown_vol_agg,
                            num_planted*(sim_vol_live-crown_vol_mono_live))
+crown_vol_agg$OY_null_sim<-with(crown_vol_agg,
+                           num_planted*(null_sim_vol_live-crown_vol_mono_live))
 
 ## and aggregating to the whole plot (inner 6 x 6 trees)
 ## since planting numbers / mortalities are only calculated
 ## within those inner 6 x 6
 crown_vol_agg_sub<-crown_vol_agg[,c("Block","Plot","Richness",
-                                    "OY_actual","OY_sim",
+                                    "OY_actual","OY_sim","OY_null_sim",
                                     "total_sp_crown_vol",
-                                    "total_sp_sim_vol")]
+                                    "total_sp_sim_vol",
+                                    "total_sp_null_sim_vol")]
 
 crown_vol_plot<-aggregate(.~Block+Plot+Richness,
                           data=crown_vol_agg_sub,
@@ -156,9 +188,7 @@ crown_vol_plot<-aggregate(.~Block+Plot+Richness,
 
 crown_vol_plot$OY_actual[which(crown_vol_plot$Richness==1)]<-NA
 crown_vol_plot$OY_sim[which(crown_vol_plot$Richness==1)]<-NA
-
-## note: could assign total_sp_sim_vol the same value as
-## total_sp_crown_vol for monocultures...
+crown_vol_plot$OY_null_sim[which(crown_vol_plot$Richness==1)]<-NA
 
 ## all values should be divided by 9 for analysis per m^2
 ## since upscaling was done to the 6 x 6 inner plot (no edge)
@@ -168,7 +198,7 @@ plot_vars<-read.csv("IDENTMontrealData/plot_vars.csv")
 
 crown_vol_plot$UniquePlotID<-paste(crown_vol_plot$Block,crown_vol_plot$Plot,sep="_")
 crown_vol_plot$FDis<-plot_vars$FDis[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
-rown_vol_plot$FTD<-plot_vars$FTD[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
+crown_vol_plot$FTD<-plot_vars$FTD[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
 
 ######################################
 ## canopy complementarity sandbox
