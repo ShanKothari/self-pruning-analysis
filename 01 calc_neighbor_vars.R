@@ -177,8 +177,42 @@ mortality_2018<-aggregate(cbind(num_alive,num_planted)~Block+Plot+CodeSp,
 write.csv(mortality_2018,"IDENTMontrealData/mortality_2018.csv",row.names=F)
 
 #########################################
+## calculate plot-level overyielding
+
+Inventory2018_sub<-subset(Inventory2018_center,Block %in% c("A","D"))
+Inventory2018_sub<-subset(Inventory2018_sub,
+                          !grepl(del_plot_pattern,UniqueTreeID))
+Inventory2018_sub$dummy<-1
+Inventory2018_sub<-Inventory2018_sub[,c("Block","Plot","CodeSp","PlotRichness",
+                                        "BasalArea","dummy")]
+Inventory2018_sub$BasalArea[which(is.na(Inventory2018_sub$BasalArea))]<-0
+
+plot_sp_ba<-aggregate(.~Block+Plot+CodeSp+PlotRichness,
+                      data=Inventory2018_sub,
+                      FUN=sum,na.rm=T)
+
+plot_sp_ba$planted_freq<-plot_sp_ba$dummy/36
+
+plot_sp_ba_mono<-subset(plot_sp_ba,PlotRichness==1)
+plot_sp_ba$mono<-apply(plot_sp_ba,1,
+                       function(x) {
+                         plot_sp_ba_mono$BasalArea[plot_sp_ba_mono$CodeSp==x["CodeSp"] & plot_sp_ba_mono$Block==x["Block"]]
+                       })
+plot_sp_ba$mono_exp<-plot_sp_ba$mono*plot_sp_ba$planted_freq
+plot_sp_ba$spOY<-(plot_sp_ba$BasalArea-plot_sp_ba$mono_exp)*9*10000/1000000
+
+plot_ba<-aggregate(spOY~Block+Plot+PlotRichness,
+                   data=plot_sp_ba,
+                   FUN=sum,na.rm=T)
+
+plot_ba$UniquePlotID<-paste(plot_ba$Block,
+                            plot_ba$Plot,
+                            sep="_")
+
+#########################################
 ## calculate plot-level functional diversity
 ## and heterogeneity in shade-tolerance
+## based on inner 6 x 6 trees
 
 mortality_2018$UniquePlotID<-paste(mortality_2018$Block,
                                    mortality_2018$Plot,
@@ -201,9 +235,11 @@ plot.FTD_STH<-FTD.comm(tdmat=dist(setNames(trait_summary$shade_tol,trait_summary
                    abund=T)
 
 plot_vars<-data.frame(UniquePlotID=rownames(planted_comm),
-                     FDis=plot_fdis,
-                     STH=plot_sth,
-                     FTD=plot.FTD$com.FTD$qDTM,
-                     FTD_STH=plot.FTD_STH$com.FTD$qDTM)
+                      FDis=plot_fdis,
+                      STH=plot_sth,
+                      FTD=plot.FTD$com.FTD$qDTM,
+                      FTD_STH=plot.FTD_STH$com.FTD$qDTM)
+
+plot_vars$OY<-plot_ba$spOY[match(plot_vars$UniquePlotID,plot_ba$UniquePlotID)]
 
 write.csv(plot_vars,"IDENTMontrealData/plot_vars.csv",row.names=F)
