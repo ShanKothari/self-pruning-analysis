@@ -383,10 +383,10 @@ NCI_slopes<-ggplot(data=species_means,
   theme(text=element_text(size=20))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
-  # labs(x="Functional identity",
-  #      y="Change in log(LF) at base with NCI")
-  labs(x="Tendance acquisitive (CP1)",
-       y=expression(paste("Pentes : log(",italic(L[base]),") ~ NCI")))
+  labs(x="Focal acquisitiveness",
+       y=expression(paste("Slopes: ",italic(L[base])," ~ NCI")))
+  # labs(x="Tendance acquisitive (CP1)",
+  #      y=expression(paste("Pentes : ",italic(L[base])," ~ NCI")))
 # ggsave(filename = "Images/NCI_slopes_FR.png",NCI_slopes,
 #        dpi=600,width = 6,height=5)
 
@@ -394,21 +394,25 @@ height_slopes<-ggplot(data=species_means,
                       aes(x=focal_acq,
                           y=light_height_slope,
                           label=Species))+
-  geom_smooth(method="lm")+geom_text()+
+  geom_smooth(method="lm")+
+  geom_text(size=5,aes(color=leaf_habit))+
+  scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
-  theme(text=element_text(size=15))+
-  labs(x="Functional identity",
-       y="Change in log(LF) at base with top height")
+  theme(text=element_text(size=20))+
+  labs(x="Focal acquisitiveness",
+       y=expression(paste("Slopes: ",italic(L[base])," ~ top height")))
 
 neighbor_acq_slopes<-ggplot(data=species_means,
                             aes(x=focal_acq,
                                 y=light_neighbor_acq_slope,
                                 label=Species))+
-  geom_smooth(method="lm")+geom_text()+
+  geom_smooth(method="lm")+
+  geom_text(size=5,aes(color=leaf_habit))+
+  scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
-  theme(text=element_text(size=15))+
+  theme(text=element_text(size=20))+
   labs(x="Focal acquisitiveness",
-       y=expression(paste("Slopes: log(",italic(L[base]),") ~ neighbor acquisitiveness")))
+       y=expression(paste("Slopes: ",italic(L[base])," ~ neighbor acquisitiveness")))
 # ggsave(filename = "Images/neighbor_acq_slopes.png",neighbor_acq_slopes,
 #        dpi=600,width = 6,height=5)
 
@@ -416,11 +420,13 @@ light_top_slopes<-ggplot(data=species_means,
                          aes(x=focal_acq,
                              y=light_toplight_slope,
                              label=Species))+
-  geom_smooth(method="lm")+geom_text()+
+  geom_smooth(method="lm")+
+  geom_text(size=5,aes(color=leaf_habit))+
+  scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
-  theme(text=element_text(size=15))+
-  labs(x="Functional identity",
-       y="Change in log(LF) at base with log(LF) at top")
+  theme(text=element_text(size=20))+
+  labs(x="Focal acquisitiveness",
+       y=expression(paste("Slopes: ",italic(L[base])," ~ ",italic(L[top]))))
 
 plot_compile<-ggpubr::ggarrange(neighbor_acq_plastic,neighbor_acq_slopes,
                                 NCI_plastic,NCI_slopes,
