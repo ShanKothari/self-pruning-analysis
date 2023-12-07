@@ -10,10 +10,6 @@ library(ggplot2)
 Inventory2018<-read.csv("IDENTMontrealData/Inventory2018_cleaned.csv")
 Inventory2018$Col<-str_sub(Inventory2018$Pos,1,1)
 Inventory2018$Row<-as.numeric(str_sub(Inventory2018$Pos,2,2))
-Inventory2018$UniqueTreeID<-paste(Inventory2018$Block,Inventory2018$Plot,Inventory2018$Pos,sep="_")
-
-## calculate basal area in cm^2 from basal diameter
-Inventory2018$BasalArea<-(Inventory2018$BasalDiam_cleaned/20)^2*pi
 
 #############################
 ## finding each tree's neighbors using
@@ -50,7 +46,7 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
 ## within radius of 1.1 m
 ## this is 90th percentile of measured crown radii
 ## (concatenating CR1, CR2, CR3, CR4 from self pruning data)
-neighbor.area<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=1.1)
+neighbor.area<-neighbor.finder(Inventory2018,"PV","CodeSp",radius=1.1)
 
 ## delete focal trees in plots we don't care about
 ## based on plot composition identifiers
@@ -73,8 +69,8 @@ if(sum(neighbor.total==0)>0){
 
 neighbor.comp<-unlist(lapply(neighbor.area,
                              function(neighborhood){
-                               centerless<-neighborhood[-which(neighborhood$distance==0),]
-                               comp.index<-sum(centerless$outcome/centerless$distance,na.rm=T)
+                               cl<-neighborhood[-which(neighborhood$distance==0),]
+                               comp.index<-sum(cl$outcome/cl$distance,na.rm=T)
                                return(comp.index)
                              }))
 
@@ -84,11 +80,16 @@ neighbor.comp<-unlist(lapply(neighbor.area,
 
 ## row bind all the neighborhoods, with a new column
 ## that designates the ID of the focal tree
-## 'centerless' objects omit the focal tree itself
+## 'cl' objects omit the focal tree itself (centerless)
 neighbor.join<-bind_rows(neighbor.area, .id = "UniqueTreeID")
-neighbor.join.centerless<-neighbor.join[-which(neighbor.join$distance==0),]
+neighbor.join.cl<-neighbor.join[-which(neighbor.join$distance==0),]
+
 neighbor.join$distance<-NULL
-neighbor.join.centerless$distance<-NULL
+neighbor.join.cl$distance<-NULL
+
+## for analyses based on numbers of planted trees
+## rather than biomass
+neighbor.join.cl$planted<-1
 
 ## summing trees of the same species in the same neighborhood
 ## because otherwise matrify won't work properly
@@ -97,17 +98,18 @@ neighbor.agg<-aggregate(neighbor.join$outcome,
                                 neighbor.join$species),
                         FUN=sum)
 
-neighbor.agg.centerless<-aggregate(neighbor.join.centerless$outcome,
-                                   by=list(neighbor.join.centerless$UniqueTreeID,
-                                           neighbor.join.centerless$species),
-                                   FUN=sum)
+neighbor.agg.cl<-aggregate(neighbor.join.cl$outcome,
+                           by=list(neighbor.join.cl$UniqueTreeID,
+                                   neighbor.join.cl$species),
+                           FUN=sum)
 
 ## note that this community matrix includes the focal
 ## tree of each neighborhood!
 neighbor.df<-matrify(neighbor.agg)
-neighbor.df.centerless<-matrify(neighbor.agg.centerless)
+neighbor.df.num<-matrify(neighbor.agg.num)
+neighbor.df.cl<-matrify(neighbor.agg.cl)
 ## make sure columns are in the same order
-neighbor.df.centerless<-neighbor.df.centerless[,colnames(neighbor.df)]
+neighbor.df.cl<-neighbor.df.cl[,colnames(neighbor.df)]
 ## the number of species in the immediate neighborhood
 neighbor.richness<-rowSums(neighbor.df>0)
 
@@ -122,7 +124,7 @@ rownames(core_traits)<-trait_summary$SpeciesCode
 
 ## calculate CWM of first trait PCA component, omitting the central tree
 ## this gives as the functional identity of the neighborhood
-neighbor.prop<-neighbor.df.centerless/rowSums(neighbor.df.centerless)
+neighbor.prop<-neighbor.df.cl/rowSums(neighbor.df.cl)
 neighbor.CWM1<-as.matrix(neighbor.prop) %*% trait_summary$PC1
 
 ## for trees with no neighbors, assign a neighborhood functional ID of 0
@@ -174,14 +176,38 @@ mortality_2018<-aggregate(cbind(num_alive,num_planted)~Block+Plot+CodeSp,
                           data=Inventory2018_center,
                           FUN=sum)
 
-write.csv(mortality_2018,"IDENTMontrealData/mortality_2018.csv",row.names=F)
+# write.csv(mortality_2018,"IDENTMontrealData/mortality_2018.csv",row.names=F)
+
+#########################################
+## output mean basal area in monoculture in 2018
+
+## only blocks A and D
+## only plots with just native species
+## no 12-species plots
+Inventory2018_sub<-subset(Inventory2018_center,Block %in% c("A","D"))
+Inventory2018_sub<-subset(Inventory2018_sub,
+                          !grepl(del_plot_pattern,UniqueTreeID))
+Inventory2018_sub<-subset(Inventory2018_sub,PlotRichness!=12)
+
+mortality_agg<-aggregate(cbind(num_alive,num_planted)~CodeSp,
+                         data=Inventory2018_sub,
+                         FUN=sum)
+mortality_agg$mortality<-with(mortality_agg,1-(num_alive/num_planted))
+
+Inventory2018_sub_mono<-subset(Inventory2018_sub,PlotRichness==1)
+
+mortality_mono_agg<-aggregate(cbind(num_alive,num_planted)~CodeSp,
+                              data=Inventory2018_sub_mono,
+                              FUN=sum)
+mortality_mono_agg$mortality<-with(mortality_mono_agg,1-(num_alive/num_planted))
+
+BA_mono_agg<-aggregate(BasalArea~CodeSp,
+                       data=Inventory2018_sub_mono,
+                       FUN=mean,na.rm=T)
 
 #########################################
 ## calculate plot-level overyielding
 
-Inventory2018_sub<-subset(Inventory2018_center,Block %in% c("A","D"))
-Inventory2018_sub<-subset(Inventory2018_sub,
-                          !grepl(del_plot_pattern,UniqueTreeID))
 Inventory2018_sub$dummy<-1
 Inventory2018_sub<-Inventory2018_sub[,c("Block","Plot","CodeSp","PlotRichness",
                                         "BasalArea","dummy")]
@@ -196,7 +222,8 @@ plot_sp_ba$planted_freq<-plot_sp_ba$dummy/36
 plot_sp_ba_mono<-subset(plot_sp_ba,PlotRichness==1)
 plot_sp_ba$mono<-apply(plot_sp_ba,1,
                        function(x) {
-                         plot_sp_ba_mono$BasalArea[plot_sp_ba_mono$CodeSp==x["CodeSp"] & plot_sp_ba_mono$Block==x["Block"]]
+                         plot_sp_ba_mono$BasalArea[plot_sp_ba_mono$CodeSp==x["CodeSp"] & 
+                                                     plot_sp_ba_mono$Block==x["Block"]]
                        })
 plot_sp_ba$mono_exp<-plot_sp_ba$mono*plot_sp_ba$planted_freq
 plot_sp_ba$spOY<-(plot_sp_ba$BasalArea-plot_sp_ba$mono_exp)*9*10000/1000000
