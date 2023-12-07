@@ -97,8 +97,12 @@ crown_vol_agg$total_sp_crown_vol<-crown_vol_agg$crown_vol_live*crown_vol_agg$num
 ##########################################
 ## simulations of canopy packing holding crown depth constant
 
+## number of crowns to simulate for each species in each plot
 n_crowns<-250
 
+## first, we simulate trees where the crown radius is sampled from
+## species in the given plot and crown depth is sampled from
+## the corresponding monocultures
 sim_crown_vols<-list()
 for(i in crown_vol_agg$plot_sp){
 
@@ -107,7 +111,9 @@ for(i in crown_vol_agg$plot_sp){
   plot<-plot_sp_split[2]
   species<-plot_sp_split[3]
   
+  ## selecting mixtures & monocultures
   mix_ids<-which(self_pruning$Block==block & self_pruning$Plot==plot & self_pruning$Species==species)
+  ## here we take advantage of the fact that monoculture plot names are species names
   mono_ids<-which(self_pruning$Block==block & self_pruning$Plot==species & self_pruning$Species==species)
   
   ## draw crown radius from mixtures
@@ -125,8 +131,11 @@ for(i in crown_vol_agg$plot_sp){
   
 }
 
-## testing sensitivity to bias caused by the
-## random matching of crown radius and crown depth
+## next, we simulate trees where the both the crown radius
+## and the crown depth are sampled from species in the given plot
+
+## the purpose of this simulation is to test sensitivity to
+## the potential bias caused by random matching of crown radius and crown depth
 null_sim_crown_vols<-list()
 for(i in crown_vol_agg$plot_sp){
   
@@ -201,45 +210,8 @@ crown_vol_plot$FDis<-plot_vars$FDis[match(crown_vol_plot$UniquePlotID,plot_vars$
 crown_vol_plot$FTD<-plot_vars$FTD[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
 
 ######################################
-## canopy complementarity sandbox
-
-## for the purpose of checking,
-## note that Bj = 0.5 is parabolic (V = 1/2*pi*r^2*h)
-## and Bj = 1 is conical (V = 1/3*pi*r^2*h)
-
-## long, narrow crown
-tree1<-list(CRmax=50,
-            CB=500,
-            CD=200,
-            Bj=0.5)
-
-## shallow, wide crown
-tree2<-list(CRmax=100,
-            CB=600,
-            CD=50,
-            Bj=0.5)
-
-tree3<-list(CRmax=30,
-            CB=400,
-            CD=200,
-            Bj=0.3)
-
-tree4<-list(CRmax=30,
-            CB=500,
-            CD=100,
-            Bj=0.5)
-
-## to see the effects
-x1<-with(tree3,CB:(CB+CD))
-y1<-with(tree3,CRmax*((CD+CB-x1)/CD)^Bj)
-plot(y1~x1,ylim=c(0,tree3$CRmax))
-
-x2<-with(tree4,CB:(CB+CD))
-y2<-with(tree4,CRmax*((CD+CB-x2)/CD)^Bj)
-points(y2~x2,col="red")
-
-######################################
 ## function to calculate complementarity
+## for a pair of trees
 
 calculate_CCI<-function(tree1,tree2){
   area1<-crown_area(CD=tree1$CD,CR=tree1$CRmax,beta=tree1$Bj)
