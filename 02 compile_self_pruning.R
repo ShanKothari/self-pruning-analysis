@@ -6,12 +6,6 @@ library(lme4)
 library(chron)
 library(fishmethods)
 
-## to do:
-## also calculate non-abundance-weighted values
-## of neighbor function/diversity?
-##
-## check that neighbor comp is calculated correctly
-
 ## manual changes to data files sent by Jon:
 ## corrected "DEAd" to "DEAD" for A	4N8	4	THOC
 ## fixed typo in base measurement time for D	2N7	2	LALA

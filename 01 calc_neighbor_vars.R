@@ -141,8 +141,9 @@ neighbor.CWM1<-as.matrix(neighbor.prop) %*% trait_summary$PC1
 ## generally not needed if neighborhood is greater than just immediate neighbors
 # neighbor.CWM1[is.na(neighbor.CWM1)]<-0
 
-## calculate FDis using FD package
-## including the central tree
+## calculate FDis using FD package, including the central tree
+## note that this will throw up an error if any tree has no 
+## living trees in its neighborhood
 # neighbor.FDis<-fdisp(dist(core_traits),
 #                      a = as.matrix(neighbor.df.num))
 
@@ -159,7 +160,7 @@ neighbor.data<-data.frame(UniqueTreeID=names(neighbor.area.NCI),
                           qDTM=neighbor.FTD$com.FTD$qDTM)
 
 ## write data
-write.csv(neighbor.data,"IDENTMontrealData/neighborhood_vars.csv")
+# write.csv(neighbor.data,"IDENTMontrealData/neighborhood_vars.csv")
 
 #################################
 ## output mortalities
