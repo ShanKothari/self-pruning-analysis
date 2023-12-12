@@ -49,7 +49,7 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
 ## within radius of 1.1 m
 ## this is 90th percentile of measured crown radii
 ## (concatenating CR1, CR2, CR3, CR4 from self pruning data)
-neighbor.area.NCI<-neighbor.finder(Inventory2018,"PV","CodeSp",radius=1.1)
+neighbor.area.NCI<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=1.1)
 
 ## delete focal trees in plots we don't care about
 ## based on plot composition identifiers
@@ -69,18 +69,16 @@ simp.NCI<-function(neighborhood,num_exp=1,den_exp=1){
 }
 
 ## calculate the simplified NCI for each neighborhood
-neighbor.comp<-unlist(lapply(neighbor.area.NCI,simp.NCI,num_exp=2/3))
+neighbor.comp<-unlist(lapply(neighbor.area.NCI,simp.NCI))
 
 ###########################################
 ## calculate functional diversity and CWMs
 
-## we divide this into a separate section and
-## in case we want to use different radii
+## we divide this into a separate section in case we
+## want to use different radii and outcome variables
 ## to calculate NCI and neighborhood function
 
-## a radius of 0.8 is enough to include all
-## eight immediate neighbors, but no more
-neighbor.area.FD<-neighbor.finder(Inventory2018,"PV","CodeSp",radius=0.8)
+neighbor.area.FD<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=1.1)
 
 ## get rid of the same plots we dropped for NCI calculations
 neighbor.area.FD<-neighbor.area.FD[-which(grepl(del_plot_pattern,names(neighbor.area.FD)))]
@@ -91,14 +89,14 @@ neighbor.area.FD<-neighbor.area.FD[-which(grepl(del_plot_pattern,names(neighbor.
 neighbor.join<-bind_rows(neighbor.area.FD, .id = "UniqueTreeID")
 neighbor.join.cl<-neighbor.join[-which(neighbor.join$distance==0),]
 
-## for analyses based on numbers of planted trees
-## rather than biomass
+## for analyses based on numbers of
+## planted trees rather than sizes
 neighbor.join$planted<-1
 neighbor.join.cl$planted<-1
 
 ## summing trees of the same species in the same neighborhood
 ## because otherwise matrify won't work properly
-neighbor.agg.num<-aggregate(neighbor.join$planted,
+neighbor.agg.num<-aggregate(neighbor.join$outcome,
                             by=list(neighbor.join$UniqueTreeID,
                                     neighbor.join$species),
                             FUN=sum)
@@ -108,10 +106,10 @@ neighbor.agg.num<-aggregate(neighbor.join$planted,
 #                                    neighbor.join.cl$species),
 #                            FUN=sum)
 
-neighbor.agg.clnum<-aggregate(neighbor.join$planted,
-                        by=list(neighbor.join$UniqueTreeID,
-                                neighbor.join$species),
-                        FUN=sum)
+neighbor.agg.clnum<-aggregate(neighbor.join$outcome,
+                              by=list(neighbor.join$UniqueTreeID,
+                                      neighbor.join$species),
+                              FUN=sum)
 
 ## note that this community matrix includes the focal
 ## tree of each neighborhood!
@@ -145,8 +143,8 @@ neighbor.CWM1<-as.matrix(neighbor.prop) %*% trait_summary$PC1
 
 ## calculate FDis using FD package
 ## including the central tree
-neighbor.FDis<-fdisp(dist(core_traits),
-                     a = as.matrix(neighbor.df.num))
+# neighbor.FDis<-fdisp(dist(core_traits),
+#                      a = as.matrix(neighbor.df.num))
 
 ## calculate Scheiner's metrics
 neighbor.FTD<-FTD.comm(tdmat=dist(core_traits),
@@ -157,7 +155,7 @@ neighbor.data<-data.frame(UniqueTreeID=names(neighbor.area.NCI),
                           neighbor.richness=neighbor.richness,
                           NCI=neighbor.comp,
                           neighbor.FI1=neighbor.CWM1,
-                          FDis=neighbor.FDis$FDis,
+                          # FDis=neighbor.FDis$FDis,
                           qDTM=neighbor.FTD$com.FTD$qDTM)
 
 ## write data
