@@ -2,10 +2,6 @@ setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 
 library(mosaic)
 
-## to dos:
-## calculate functional diversity/heterogeneity in shade tolerance
-## at the plot scale for complementarity analyses
-
 ########################################
 ## data on crown shape and size
 
@@ -213,6 +209,8 @@ crown_vol_plot$FTD<-plot_vars$FTD[match(crown_vol_plot$UniquePlotID,plot_vars$Un
 ## function to calculate complementarity
 ## for a pair of trees
 
+source("Scripts/self-pruning-analysis/complementarity_functions.R")
+
 calculate_CCI<-function(tree1,tree2){
   area1<-crown_area(CD=tree1$CD,CR=tree1$CRmax,beta=tree1$Bj)
   area2<-crown_area(CD=tree2$CD,CR=tree2$CRmax,beta=tree2$Bj)
@@ -272,6 +270,7 @@ tree_list_1<-list(CRmax=tree_samp_1$CR_average,
                   CD=tree_samp_1$CrownDepth,
                   CB=tree_samp_1$HeightBase,
                   Bj=tree_samp_1$Bj)
+
 tree_list_2<-list(CRmax=tree_samp_2$CR_average,
                   CD=tree_samp_2$CrownDepth,
                   CB=tree_samp_2$HeightBase,
@@ -283,7 +282,14 @@ calculate_CCI(tree_list_1,tree_list_2)
 ## applying the complementarity function
 ## to calculate the complementarity of each plot
 
+## split self-pruning data by unique plot
 self_pruning_split<-split(self_pruning,f = ~Block+Plot)
+
+## split mortality data by unique plot, and
+## ensure that retained plot (and their order)
+## match the split self-pruning data
+mortality_split<-split(mortality_2018,f = ~Block+Plot)[names(self_pruning_split)]
+sum(names(self_pruning_split)==names(mortality_split))
 
 ## species is a vector of species in the plot
 ## nums_planted is a vector of numbers of those species planted within the plot
@@ -333,8 +339,6 @@ plot_CCI<-function(sp_plot,mortality_plot){
   tree_pair_list<-list()
   
   for(i in 1:nrow(sp_pairs)){
-    
-    print(i)
     
     ## extract the two species from this row
     sp1<-sp_pairs[i,1]
@@ -422,8 +426,13 @@ plot_CCI<-function(sp_plot,mortality_plot){
   return(tree_pair_df)
 }
 
-## these three lines are not ready because they don't take mortality data yet
-plot_CCI_all<-lapply(self_pruning_split,plot_CCI)
+
+
+plot_CCI_all<-lapply(1:length(self_pruning_split),function(i){
+  print(i)
+  return(plot_CCI(self_pruning_split[[i]],mortality_split[[i]]))
+})
+
 plot_CCI_means<-lapply(plot_CCI_all,colMeans,na.rm=T)
 plot_CCI_mean_df<-data.frame(do.call(rbind,plot_CCI_means))
 plot_CCI_mean_df$plot<-rownames(plot_CCI_mean_df)
