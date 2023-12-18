@@ -288,36 +288,44 @@ self_pruning_split<-split(self_pruning,f = ~Block+Plot)
 ## split mortality data by unique plot, and
 ## ensure that retained plot (and their order)
 ## match the split self-pruning data
-mortality_split<-split(mortality_2018,f = ~Block+Plot)[names(self_pruning_split)]
+mortality_split<-split(mortality_2018,f = ~Block+Plot)
+## check that plots are in the same order; should be 72
 sum(names(self_pruning_split)==names(mortality_split))
 
 ## species is a vector of species in the plot
+## nums_alive is a vector of numbers of surviving trees of each species in the plot
 ## nums_planted is a vector of numbers of those species planted within the plot
 ## (we use raw numbers planted rather than proportions because we may
 ## want to create simulated plots by combining monocultures
 ## so if you just combine those plots via rbind, numbers may exceed 1)
-## props_alive is a vector of proportions of planted trees of the species that survive
 ## species, props_planted, and props_alive MUST be in the same order
 
-plot_combos<-function(species,nums_planted,props_alive,n_pairs=100){
+plot_combos<-function(species,nums_alive,nums_planted,n_pairs=100){
   
-  props_planted<-nums_planted/sum(nums_planted)
+  ## calculate proportion of living trees of each
+  ## species out of total trees of all species 
+  props_alive_sp<-nums_alive/sum(nums_planted)
+  
+  ## proportion of dead trees (of any species)
+  ## out of those planted
+  prop_dead<-1-sum(props_alive_sp)
   
   ## vector of probabilities for outcomes
-  ## each species planted * prob of being still alive
-  probs_vec<-c(props_planted*props_alive,props_planted*(1-props_alive))
-  sample_vec<-c(species,rep(NA,times=length(species)))
+  probs_vec<-c(props_alive_sp,prop_dead)
+  sample_vec<-c(species,NA)
   
   ## sample from sample_vec according to probs_vec
   ## returns species label for living tree of given species
   ## returns NA for dead tree of either species
-  sp_sample<-as.factor(sample(sample_vec,size=n_pairs*2,
-                              replace=T,prob=probs_vec))
+  sp_sample<-as.factor(sample(x=sample_vec,
+                              size=n_pairs*2,
+                              replace=T,
+                              prob=probs_vec))
   
   sp_sample_df<-data.frame(ind1=sp_sample[1:n_pairs],
                            ind2=sp_sample[(n_pairs+1):(2*n_pairs)])
-  return(sp_sample_df)
   
+  return(sp_sample_df)
 }
 
 ## sp_plot is used for drawing information related to crown shape
@@ -332,8 +340,8 @@ plot_CCI<-function(sp_plot,mortality_plot){
   ## generate 100 pairs of two species sampled
   ## based on real planting numbers and mortality rates
   sp_pairs<-plot_combos(species=mortality_plot$CodeSp,
-                        nums_planted=mortality_plot$num_planted,
-                        props_alive=mortality_plot$prop_alive)
+                        nums_alive=mortality_plot$num_alive,
+                        nums_planted=mortality_plot$num_planted)
   
   ## output object with outcomes
   tree_pair_list<-list()
@@ -343,6 +351,19 @@ plot_CCI<-function(sp_plot,mortality_plot){
     ## extract the two species from this row
     sp1<-sp_pairs[i,1]
     sp2<-sp_pairs[i,2]
+    
+    ## a contingency for if one or the other species
+    ## was not sampled within the plot for the self-pruning
+    ## survey; just skips the iteration and returns NA.
+    ## this situation should be rare, since in general all
+    ## species that were present (alive) were sampled at
+    ## least once, by intention
+    if(sum(sp_plot$Species==sp1)==0 |
+       sum(sp_plot$Species==sp2)==0){
+      tree_pair_list[[i]]<-NA
+      print("skipped iteration due to missing species")
+      next
+    }
     
     ## if both sampled trees are dead (NA)
     if(is.na(sp1) & is.na(sp2)){
@@ -421,12 +442,14 @@ plot_CCI<-function(sp_plot,mortality_plot){
     }
   }
   
+  ## get rid of any skipped iterations
+  tree_pair_list<-tree_pair_list[-which(is.na(tree_pair_list))]
+  
+  ## turn to data frame for output
   tree_pair_df<-do.call(rbind.data.frame, tree_pair_list)
   colnames(tree_pair_df)<-names(tree_pair_list[[1]])
   return(tree_pair_df)
 }
-
-
 
 plot_CCI_all<-lapply(1:length(self_pruning_split),function(i){
   print(i)
