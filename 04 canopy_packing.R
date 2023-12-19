@@ -366,22 +366,6 @@ plot_CCI<-function(sp_plot,mortality_plot,n_pairs=100){
     sp1<-sp_pairs[i,1]
     sp2<-sp_pairs[i,2]
     
-    ## a contingency for if one or the other species
-    ## was not sampled within the plot for the self-pruning
-    ## survey; this situation should not actually occur, since
-    ## plots with this situation were removed earlier
-    if(!is.na(sp1) & sum(sp_plot$Species==sp1)==0 |
-       !is.na(sp2) & sum(sp_plot$Species==sp2)==0){
-      
-      ## if instead we wanted to return NA and move on...
-      # tree_pair_list[[i]]<-NA
-      # print("skipped iteration due to missing species")
-      # next
-      
-      stop("species missing from self-pruning data")
-      
-    }
-    
     ## if both sampled trees are dead (NA)
     if(is.na(sp1) & is.na(sp2)){
       
@@ -458,11 +442,6 @@ plot_CCI<-function(sp_plot,mortality_plot,n_pairs=100){
       
     }
   }
-  
-  ## get rid of any skipped iterations
-  ## only applicable if there are species
-  ## missing from the self-pruning survey
-  tree_pair_list<-tree_pair_list[which(!is.na(tree_pair_list))]
   
   ## turn to data frame for output
   tree_pair_df<-do.call(rbind.data.frame, tree_pair_list)
