@@ -460,7 +460,9 @@ plot_CCI<-function(sp_plot,mortality_plot,n_pairs=100){
   }
   
   ## get rid of any skipped iterations
-  tree_pair_list<-tree_pair_list[-which(is.na(tree_pair_list))]
+  ## only applicable if there are species
+  ## missing from the self-pruning survey
+  tree_pair_list<-tree_pair_list[which(!is.na(tree_pair_list))]
   
   ## turn to data frame for output
   tree_pair_df<-do.call(rbind.data.frame, tree_pair_list)
