@@ -16,11 +16,10 @@ library(fishmethods)
 
 self_pruning<-read.csv("SelfPruningData/Self_Pruning_DATA_TimeINFO.csv")
 self_pruning$Plot<-gsub(" ","",self_pruning$Plot)
-self_pruning$UniquePlot<-paste(self_pruning$Block,self_pruning$Plot,sep=".")
-self_pruning$UniqueTreeID<-paste(self_pruning$Block,
-                                 self_pruning$Plot,
-                                 self_pruning$TreeID,
-                                 sep="_")
+self_pruning$unique_plot<-paste(self_pruning$Block,self_pruning$Plot,sep="_")
+self_pruning$unique_tree<-paste(self_pruning$unique_plot,
+                                self_pruning$TreeID,
+                                sep="_")
 
 ## drop dead trees
 ## mortalities in the self-pruning dataset are uninformative
@@ -72,8 +71,6 @@ base_times_angle<-astrocalc4r(day=base_times_sub$day,
 self_pruning$zenith<-NULL
 self_pruning$zenith[which(!is.na(base_times$day))]<-base_times_angle$zenith
 
-## repeat for the top?
-
 ####################################
 ## produce new self-pruning and predictor variables
 
@@ -92,25 +89,20 @@ self_pruning$logLightBase<-log(self_pruning$LightBase./100)
 
 ## attach neighborhood-level variables
 neighbor.data<-read.csv("IDENTMontrealData/neighborhood_vars.csv")
-self_pruning$neighbor_richness<-neighbor.data$neighbor.richness[match(self_pruning$UniqueTreeID,
-                                                                      neighbor.data$UniqueTreeID)]
-self_pruning$FDis<-neighbor.data$FDis[match(self_pruning$UniqueTreeID,
-                                            neighbor.data$UniqueTreeID)]
-self_pruning$qDTM<-neighbor.data$qDTM[match(self_pruning$UniqueTreeID,
-                                            neighbor.data$UniqueTreeID)]
-self_pruning$neighbor_acq<- -neighbor.data$neighbor.FI1[match(self_pruning$UniqueTreeID,
-                                                          neighbor.data$UniqueTreeID)]
-self_pruning$neighbor_comp<-neighbor.data$NCI[match(self_pruning$UniqueTreeID,
-                                                           neighbor.data$UniqueTreeID)]
+neighbor.match<-match(self_pruning$unique_tree,neighbor.data$unique_tree)
+self_pruning$neighbor_richness<-neighbor.data$neighbor.richness[neighbor.match]
+self_pruning$FDis<-neighbor.data$FDis[neighbor.match]
+self_pruning$qDTM<-neighbor.data$qDTM[neighbor.match]
+self_pruning$neighbor_acq<- -neighbor.data$neighbor.FI1[neighbor.match]
+self_pruning$neighbor_comp<-neighbor.data$NCI[neighbor.match]
 
 ## read in trait data to get shade tolerance
 trait_summary<-read.csv("TraitData/trait_summary.csv")
-self_pruning$shade_tol<-trait_summary$shade_tol[match(self_pruning$Species,
-                                                      trait_summary$SpeciesCode)]
+trait.match<-match(self_pruning$Species,trait_summary$SpeciesCode)
+self_pruning$shade_tol<-trait_summary$shade_tol[trait.match]
 
 ## and get focal species functional ID (PC1)
-self_pruning$focal_acq<- -trait_summary$PC1[match(self_pruning$Species,
-                                                  trait_summary$SpeciesCode)]
+self_pruning$focal_acq<- -trait_summary$PC1[trait.match]
 self_pruning$acq_dist<- self_pruning$focal_acq-self_pruning$neighbor_acq
 self_pruning$acq_dist_abs<- abs(self_pruning$acq_dist)
 
@@ -350,20 +342,20 @@ height_plastic_CD<-ggplot(self_pruning,
 ################################################
 ## pull out the species-specific slopes from mixed-effects models
 
-light_neighbor_acq_sp<-lmer(logLightBase~neighbor_acq*Species+(1|UniquePlot),data=self_pruning)
+light_neighbor_acq_sp<-lmer(logLightBase~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
 species_means$light_neighbor_acq_slope<-rep(fixef(light_neighbor_acq_sp)[2],12)+c(0,fixef(light_neighbor_acq_sp)[14:24])
 anova(light_neighbor_acq_sp, type="III")
 
-light_NCI_sp<-lmer(logLightBase~neighbor_comp*Species+(1|UniquePlot),data=self_pruning)
+light_NCI_sp<-lmer(logLightBase~neighbor_comp*Species+(1|unique_plot),data=self_pruning)
 species_means$light_NCI_slope<-rep(fixef(light_NCI_sp)[2],12)+c(0,fixef(light_NCI_sp)[14:24])
 anova(light_NCI_sp, type="III")
 
-light_height_sp<-lmer(logLightBase~HeightTop*Species+(1|UniquePlot),data=self_pruning)
+light_height_sp<-lmer(logLightBase~HeightTop*Species+(1|unique_plot),data=self_pruning)
 species_means$light_height_slope<-rep(fixef(light_height_sp)[2],12)+c(0,fixef(light_height_sp)[14:24])
 anova(light_height_sp, type="III")
 
 ## which species may show some evidence of correlative inhibition?
-light_toplight_sp<-lmer(logLightBase~logLightTop*Species+(1|UniquePlot),data=self_pruning)
+light_toplight_sp<-lmer(logLightBase~logLightTop*Species+(1|unique_plot),data=self_pruning)
 species_means$light_toplight_slope<-rep(fixef(light_toplight_sp)[2],12)+c(0,fixef(light_toplight_sp)[15:25])
 anova(light_toplight_sp, type="III")
 
