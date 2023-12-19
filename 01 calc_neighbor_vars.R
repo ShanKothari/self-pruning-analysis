@@ -25,8 +25,8 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
     ## get IDs of neighbors (within radius)
     distances<-sqrt((dat$X_Pos-xpos)^2+(dat$Y_Pos-ypos[1])^2)
     neighbors<-dat[which(distances <= radius),
-                   c(outcome.var,sp.var,"UniqueTreeID")]
-    colnames(neighbors)<-c("outcome","species","UniqueTreeID")
+                   c(outcome.var,sp.var,"unique_tree")]
+    colnames(neighbors)<-c("outcome","species","unique_tree")
     neighbors$distance<-distances[which(distances <= radius)]
     
     ## replace NAs in the outcome with 0
@@ -38,7 +38,7 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
     outcome.list[[i]]<-neighbors
   }
   
-  names(outcome.list)<-dat$UniqueTreeID
+  names(outcome.list)<-dat$unique_tree
   return(outcome.list)
 }
 
@@ -86,7 +86,7 @@ neighbor.area.FD<-neighbor.area.FD[-which(grepl(del_plot_pattern,names(neighbor.
 ## row bind all the neighborhoods, with a new column
 ## that designates the ID of the focal tree
 ## 'cl' objects omit the focal tree itself (centerless)
-neighbor.join<-bind_rows(neighbor.area.FD, .id = "UniqueTreeID")
+neighbor.join<-bind_rows(neighbor.area.FD, .id = "unique_tree")
 neighbor.join.cl<-neighbor.join[-which(neighbor.join$distance==0),]
 
 ## for analyses based on numbers of
@@ -97,17 +97,17 @@ neighbor.join.cl$planted<-1
 ## summing trees of the same species in the same neighborhood
 ## because otherwise matrify won't work properly
 neighbor.agg.num<-aggregate(neighbor.join$outcome,
-                            by=list(neighbor.join$UniqueTreeID,
+                            by=list(neighbor.join$unique_tree,
                                     neighbor.join$species),
                             FUN=sum)
 
 # neighbor.agg.cl<-aggregate(neighbor.join.cl$outcome,
-#                            by=list(neighbor.join.cl$UniqueTreeID,
+#                            by=list(neighbor.join.cl$unique_tree,
 #                                    neighbor.join.cl$species),
 #                            FUN=sum)
 
 neighbor.agg.clnum<-aggregate(neighbor.join$outcome,
-                              by=list(neighbor.join$UniqueTreeID,
+                              by=list(neighbor.join$unique_tree,
                                       neighbor.join$species),
                               FUN=sum)
 
@@ -152,7 +152,7 @@ neighbor.FTD<-FTD.comm(tdmat=dist(core_traits),
                        spmat = as.matrix(neighbor.df.num),
                        abund=T)
 
-neighbor.data<-data.frame(UniqueTreeID=names(neighbor.area.NCI),
+neighbor.data<-data.frame(unique_tree=names(neighbor.area.NCI),
                           neighbor.richness=neighbor.richness,
                           NCI=neighbor.comp,
                           neighbor.FI1=neighbor.CWM1,
@@ -179,7 +179,7 @@ Inventory2018_sub<-Inventory2018[-which(grepl(edge_pattern,Inventory2018$Pos)),]
 
 Inventory2018_sub<-subset(Inventory2018_sub,Block %in% c("A","D"))
 Inventory2018_sub<-subset(Inventory2018_sub,
-                          !grepl(del_plot_pattern,UniqueTreeID))
+                          !grepl(del_plot_pattern,unique_tree))
 Inventory2018_sub<-subset(Inventory2018_sub,PlotRichness!=12)
 
 ## create a dummy variable with a value of 1 for all planted trees
@@ -212,9 +212,9 @@ plot_ba<-aggregate(spOY~Block+Plot+PlotRichness,
                    data=plot_sp_ba,
                    FUN=sum,na.rm=T)
 
-plot_ba$UniquePlotID<-paste(plot_ba$Block,
-                            plot_ba$Plot,
-                            sep="_")
+plot_ba$unique_plot<-paste(plot_ba$Block,
+                           plot_ba$Plot,
+                           sep="_")
 
 #########################################
 ## output mean basal area in monoculture in 2018
@@ -224,33 +224,25 @@ plot_ba$UniquePlotID<-paste(plot_ba$Block,
 ## count a tree as alive if its status is not "dead"
 Inventory2018_sub$num_alive<-ifelse(Inventory2018_sub$StateDesc!="Dead",yes=1,no=0)
 
+## mortality by species (across all plots)
 mortality_agg<-aggregate(cbind(num_alive,num_planted)~CodeSp,
                          data=Inventory2018_sub,
                          FUN=sum)
 mortality_agg$mortality<-with(mortality_agg,1-(num_alive/num_planted))
 
+## mortality by species (monoculture only)
 Inventory2018_sub_mono<-subset(Inventory2018_sub,PlotRichness==1)
-
 mortality_mono_agg<-aggregate(cbind(num_alive,num_planted)~CodeSp,
                               data=Inventory2018_sub_mono,
                               FUN=sum)
 mortality_mono_agg$mortality<-with(mortality_mono_agg,1-(num_alive/num_planted))
 
+## basal area by species (monoculture only)
 BA_mono_agg<-aggregate(BasalArea~CodeSp,
                        data=Inventory2018_sub_mono,
                        FUN=mean,na.rm=T)
 
-###########################################
-## output mortalities (per species per unique plot)
-
-## 'fix' a single BEPA misplanted in a BEAL/QURU biculture
-## it is an actual BEPA, but because this BEPA was not sampled
-## in self-pruning analyses from this plot, we can't include
-## it in calculations of complementarity, etc.
-## this also affects functional diversity at the plot scale
-Inventory2018_sub$CodeSp[Inventory2018_sub$Plot=="2N3" & Inventory2018_sub$CodeSp=="BEPA"]<-"BEAL"
-
-## output mortality summary statistics
+## mortality per species per unique plot (all plots)
 mortality_2018<-aggregate(cbind(num_alive,num_planted)~Block+Plot+CodeSp,
                           data=Inventory2018_sub,
                           FUN=sum)
@@ -262,11 +254,11 @@ mortality_2018<-aggregate(cbind(num_alive,num_planted)~Block+Plot+CodeSp,
 ## and heterogeneity in shade-tolerance
 ## based on inner 6 x 6 trees
 
-mortality_2018$UniquePlotID<-paste(mortality_2018$Block,
-                                   mortality_2018$Plot,
-                                   sep="_")
+mortality_2018$unique_plot<-paste(mortality_2018$Block,
+                                  mortality_2018$Plot,
+                                  sep="_")
 ## weights are by numbers of planted individuals
-planted_comm<-matrify(mortality_2018[,c("UniquePlotID","CodeSp","num_planted")])
+planted_comm<-matrify(mortality_2018[,c("unique_plot","CodeSp","num_planted")])
 
 ## functional dispersion in traits
 ## using Laliberte's FDis and Scheiner's qDTM
@@ -285,12 +277,12 @@ plot.FTD_STH<-FTD.comm(tdmat=dist(shade_tol),
                        spmat = as.matrix(planted_comm),
                        abund=T)
 
-plot_vars<-data.frame(UniquePlotID=rownames(planted_comm),
+plot_vars<-data.frame(unique_plot=rownames(planted_comm),
                       FDis=plot_fdis,
                       STH=plot_sth,
                       FTD=plot.FTD$com.FTD$qDTM,
                       FTD_STH=plot.FTD_STH$com.FTD$qDTM)
 
-plot_vars$OY<-plot_ba$spOY[match(plot_vars$UniquePlotID,plot_ba$UniquePlotID)]
+plot_vars$OY<-plot_ba$spOY[match(plot_vars$unique_plot,plot_ba$unique_plot)]
 
 # write.csv(plot_vars,"IDENTMontrealData/plot_vars.csv",row.names=F)
