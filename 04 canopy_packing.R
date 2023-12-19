@@ -457,7 +457,7 @@ plot_CCI_all<-lapply(1:length(self_pruning_split),function(i){
 
 plot_CCI_means<-lapply(plot_CCI_all,colMeans,na.rm=T)
 plot_CCI_mean_df<-data.frame(do.call(rbind,plot_CCI_means))
-plot_CCI_mean_df$plot<-rownames(plot_CCI_mean_df)
+plot_CCI_mean_df$unique_plot<-names(self_pruning_split)
 
 ############################################
 ## applying the complementarity function
