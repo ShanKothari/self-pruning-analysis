@@ -89,20 +89,19 @@ self_pruning$logLightBase<-log(self_pruning$LightBase./100)
 
 ## attach neighborhood-level variables
 neighbor.data<-read.csv("IDENTMontrealData/neighborhood_vars.csv")
-neighbor.match<-match(self_pruning$unique_tree,neighbor.data$unique_tree)
-self_pruning$neighbor_richness<-neighbor.data$neighbor.richness[neighbor.match]
-self_pruning$FDis<-neighbor.data$FDis[neighbor.match]
-self_pruning$qDTM<-neighbor.data$qDTM[neighbor.match]
-self_pruning$neighbor_acq<- -neighbor.data$neighbor.FI1[neighbor.match]
-self_pruning$neighbor_comp<-neighbor.data$NCI[neighbor.match]
+neighbor_match<-match(self_pruning$unique_tree,neighbor.data$unique_tree)
+self_pruning$neighbor_richness<-neighbor.data$neighbor.richness[neighbor_match]
+self_pruning$FDis<-neighbor.data$FDis[neighbor_match]
+self_pruning$qDTM<-neighbor.data$qDTM[neighbor_match]
+self_pruning$neighbor_acq<- -neighbor.data$neighbor.FI1[neighbor_match]
+self_pruning$neighbor_comp<-neighbor.data$NCI[neighbor_match]
 
 ## read in trait data to get shade tolerance
+## and focal species functional ID (PC1)
 trait_summary<-read.csv("TraitData/trait_summary.csv")
-trait.match<-match(self_pruning$Species,trait_summary$SpeciesCode)
-self_pruning$shade_tol<-trait_summary$shade_tol[trait.match]
-
-## and get focal species functional ID (PC1)
-self_pruning$focal_acq<- -trait_summary$PC1[trait.match]
+trait_match<-match(self_pruning$Species,trait_summary$SpeciesCode)
+self_pruning$shade_tol<-trait_summary$shade_tol[trait_match]
+self_pruning$focal_acq<- -trait_summary$PC1[trait_match]
 self_pruning$acq_dist<- self_pruning$focal_acq-self_pruning$neighbor_acq
 self_pruning$acq_dist_abs<- abs(self_pruning$acq_dist)
 
@@ -119,16 +118,14 @@ self_pruning_mono<-self_pruning[self_pruning$nbsp==1,]
 self_pruning_sub<-self_pruning[,c("logLightBase","Species","HeightTop","BasalArea")]
 species_means<-aggregate(.~Species,data = self_pruning_sub,
                          FUN = mean,na.rm = T)
-species_means$shade_tol<-trait_summary$shade_tol[match(species_means$Species,
-                                                       trait_summary$SpeciesCode)]
-species_means$focal_acq<- -trait_summary$PC1[match(species_means$Species,
-                                                   trait_summary$SpeciesCode)]
-species_means$PC2<- -trait_summary$PC2[match(species_means$Species,
-                                             trait_summary$SpeciesCode)]
-species_means$leaf_lifespan<- trait_summary$LL[match(species_means$Species,
-                                                     trait_summary$SpeciesCode)]
-species_means$leaf_habit<- trait_summary$leaf_habit[match(species_means$Species,
-                                                          trait_summary$SpeciesCode)]
+
+## attach traits to species means
+trait_match_means<-match(species_means$Species,trait_summary$SpeciesCode)
+species_means$shade_tol<-trait_summary$shade_tol[trait_match_means]
+species_means$focal_acq<- -trait_summary$PC1[trait_match_means]
+species_means$PC2<- -trait_summary$PC2[trait_match_means]
+species_means$leaf_lifespan<- trait_summary$LL[trait_match_means]
+species_means$leaf_habit<- trait_summary$leaf_habit[trait_match_means]
 
 # summary(lm(logLightBase~shade_tol+focal_acq,data=species_means))
 
