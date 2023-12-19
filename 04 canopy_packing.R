@@ -295,10 +295,11 @@ sum(names(self_pruning_split)==names(mortality_split))
 ## species is a vector of species in the plot
 ## nums_alive is a vector of numbers of surviving trees of each species in the plot
 ## nums_planted is a vector of numbers of those species planted within the plot
-## (we use raw numbers planted rather than proportions because we may
+## species, props_planted, and props_alive MUST be in the same order
+
+## (NOTE: we use raw numbers planted rather than proportions because we may
 ## want to create simulated plots by combining monocultures
 ## so if you just combine those plots via rbind, numbers may exceed 1)
-## species, props_planted, and props_alive MUST be in the same order
 
 plot_combos<-function(species,nums_alive,nums_planted,n_pairs=100){
   
@@ -333,15 +334,16 @@ plot_combos<-function(species,nums_alive,nums_planted,n_pairs=100){
 
 ## mortality_plot is used for drawing information related to mortality
 ## it must have one row per species with columns 'CodeSp',
-## 'prop_planted', and 'prop_alive'
+## 'num_alive', and 'num_planted'
 
-plot_CCI<-function(sp_plot,mortality_plot){
+plot_CCI<-function(sp_plot,mortality_plot,n_pairs=100){
   
   ## generate 100 pairs of two species sampled
   ## based on real planting numbers and mortality rates
   sp_pairs<-plot_combos(species=mortality_plot$CodeSp,
                         nums_alive=mortality_plot$num_alive,
-                        nums_planted=mortality_plot$num_planted)
+                        nums_planted=mortality_plot$num_planted,
+                        n_pairs=n_pairs)
   
   ## output object with outcomes
   tree_pair_list<-list()
@@ -358,8 +360,8 @@ plot_CCI<-function(sp_plot,mortality_plot){
     ## this situation should be rare, since in general all
     ## species that were present (alive) were sampled at
     ## least once, by intention
-    if(sum(sp_plot$Species==sp1)==0 |
-       sum(sp_plot$Species==sp2)==0){
+    if(!is.na(sp1) & sum(sp_plot$Species==sp1)==0 |
+       !is.na(sp2) & sum(sp_plot$Species==sp2)==0){
       tree_pair_list[[i]]<-NA
       print("skipped iteration due to missing species")
       next
@@ -408,7 +410,7 @@ plot_CCI<-function(sp_plot,mortality_plot){
       
       tree_b<-list(CRmax=0,CB=0,CD=0,Bj=0)
       
-      tree_pair_list[[i]]<-NA
+      tree_pair_list[[i]]<-calculate_CCI(tree_a,tree_b)
       
     }
     
