@@ -10,6 +10,14 @@ library(mosaic)
 ## to account for later
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 
+## in these three plots, there are species that were living
+## in the plot in 2018 that were accidentally not measured 
+## in the self-pruning survey. in A_4N8, THOC is missing;
+## in D_4N3, PIST is missing; in A_2N3, BEPA (misplanted)
+## is missing. these issues would otherwise threaten to
+## bias crown packing and complementarity calculations
+self_pruning<-subset(self_pruning,!(unique_plot %in% c("A_2N3","A_4N8","D_4N3")))
+
 ## get indicators of species composition
 self_pruning_list<-split(self_pruning,f = self_pruning$Plot)
 self_pruning_comp<-unlist(lapply(self_pruning_list,
@@ -40,8 +48,11 @@ self_pruning$crown_vol<-crown_vol(CD=self_pruning$CrownDepth/100,
 
 ## read in mortality data
 mortality_2018<-read.csv("IDENTMontrealData/mortality_2018.csv")
-mortality_2018$plot_sp<-paste(mortality_2018$Block,
-                              mortality_2018$Plot,
+mortality_2018$unique_plot<-paste(mortality_2018$Block,
+                                 mortality_2018$Plot,
+                                 sep="_")
+
+mortality_2018$plot_sp<-paste(mortality_2018$unique_plot,
                               mortality_2018$CodeSp,
                               sep="_")
 
@@ -201,9 +212,9 @@ crown_vol_plot$OY_null_sim[which(crown_vol_plot$Richness==1)]<-NA
 ## read in plot-level heterogeneity measures
 plot_vars<-read.csv("IDENTMontrealData/plot_vars.csv")
 
-crown_vol_plot$UniquePlotID<-paste(crown_vol_plot$Block,crown_vol_plot$Plot,sep="_")
-crown_vol_plot$FDis<-plot_vars$FDis[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
-crown_vol_plot$FTD<-plot_vars$FTD[match(crown_vol_plot$UniquePlotID,plot_vars$UniquePlotID)]
+crown_vol_plot$unique_plot<-paste(crown_vol_plot$Block,crown_vol_plot$Plot,sep="_")
+crown_vol_plot$FDis<-plot_vars$FDis[match(crown_vol_plot$unique_plot,plot_vars$unique_plot)]
+crown_vol_plot$FTD<-plot_vars$FTD[match(crown_vol_plot$unique_plot,plot_vars$unique_plot)]
 
 ######################################
 ## function to calculate complementarity
@@ -283,13 +294,14 @@ calculate_CCI(tree_list_1,tree_list_2)
 ## to calculate the complementarity of each plot
 
 ## split self-pruning data by unique plot
-self_pruning_split<-split(self_pruning,f = ~Block+Plot)
+self_pruning_split<-split(self_pruning,f = ~unique_plot)
 
 ## split mortality data by unique plot, and
-## ensure that retained plot (and their order)
+## ensure that retained plots (and their order)
 ## match the split self-pruning data
-mortality_split<-split(mortality_2018,f = ~Block+Plot)
-## check that plots are in the same order; should be 72
+mortality_split<-split(mortality_2018,f = ~unique_plot)[names(self_pruning_split)]
+
+## check that plots are in the same order; should be 69
 sum(names(self_pruning_split)==names(mortality_split))
 
 ## species is a vector of species in the plot
@@ -356,15 +368,18 @@ plot_CCI<-function(sp_plot,mortality_plot,n_pairs=100){
     
     ## a contingency for if one or the other species
     ## was not sampled within the plot for the self-pruning
-    ## survey; just skips the iteration and returns NA.
-    ## this situation should be rare, since in general all
-    ## species that were present (alive) were sampled at
-    ## least once, by intention
+    ## survey; this situation should not actually occur, since
+    ## plots with this situation were removed earlier
     if(!is.na(sp1) & sum(sp_plot$Species==sp1)==0 |
        !is.na(sp2) & sum(sp_plot$Species==sp2)==0){
-      tree_pair_list[[i]]<-NA
-      print("skipped iteration due to missing species")
-      next
+      
+      ## if instead we wanted to return NA and move on...
+      # tree_pair_list[[i]]<-NA
+      # print("skipped iteration due to missing species")
+      # next
+      
+      stop("species missing from self-pruning data")
+      
     }
     
     ## if both sampled trees are dead (NA)
@@ -451,6 +466,7 @@ plot_CCI<-function(sp_plot,mortality_plot,n_pairs=100){
   tree_pair_df<-do.call(rbind.data.frame, tree_pair_list)
   colnames(tree_pair_df)<-names(tree_pair_list[[1]])
   return(tree_pair_df)
+  
 }
 
 plot_CCI_all<-lapply(1:length(self_pruning_split),function(i){
