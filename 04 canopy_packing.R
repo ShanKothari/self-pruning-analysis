@@ -151,8 +151,8 @@ for(i in crown_vol_agg$plot_sp){
   plot<-plot_sp_split[2]
   species<-plot_sp_split[3]
   
-  mix_ids<-which(self_pruning$Block==block & self_pruning$Plot==plot & self_pruning$Species==species)
-  mono_ids<-which(self_pruning$Block==block & self_pruning$Plot==species & self_pruning$Species==species)
+  mix_ids<-with(self_pruning,which(Block==block & Plot==plot & Species==species))
+  mono_ids<-with(self_pruning,which(Block==block & Plot==species & Species==species))
   
   ## draw crown radius and crown depth from mixtures
   null_sim_plot_sp<-data.frame(CR_average=sample(self_pruning$CR_average[mix_ids],
@@ -473,7 +473,8 @@ plot_CCI_mean_df$unique_plot<-names(self_pruning_split)
 ## in this case, we want to 'draw' mortality rates from
 ## monoculture plots in the mortality data frame
 
-plot_simulator<-function(plot,full_df) {
+## need to add input of the mortality df
+plot_simulator<-function(plot,sp_df,mortality_df) {
 
   ## simulate a new plot by combining the monocultures
   ## of the constituent species in the same block
@@ -484,7 +485,8 @@ plot_simulator<-function(plot,full_df) {
   
   ## this works since monoculture plots have a name
   ## that is simply the one species they contain
-  sim_plot<-self_pruning[which(full_df$Block==plot_block & full_df$Plot %in% plot_comp),]
+  sim_plot_match<-which(sp_df$Block==plot_block & sp_df$Plot %in% plot_comp)
+  sim_plot<-self_pruning[sim_plot_match,]
   return(sim_plot)
   
 }
@@ -494,5 +496,6 @@ self_pruning_mix<-self_pruning_split[-which(split_nbsp==1)]
 
 self_pruning_sim<-lapply(self_pruning_mix,
                          plot_simulator,
-                         full_df=self_pruning)
+                         sp_df=self_pruning)
+## need to input mortality data here
 plot_CCI_sim<-lapply(self_pruning_sim,plot_CCI)
