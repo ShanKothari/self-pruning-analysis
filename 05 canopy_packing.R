@@ -456,46 +456,74 @@ plot_CCI_all<-lapply(1:length(self_pruning_split),function(i){
 })
 
 plot_CCI_means<-lapply(plot_CCI_all,colMeans,na.rm=T)
-plot_CCI_mean_df<-data.frame(do.call(rbind,plot_CCI_means))
-plot_CCI_mean_df$unique_plot<-names(self_pruning_split)
+plot_CCI_df<-data.frame(do.call(rbind,plot_CCI_means))
+plot_CCI_df$unique_plot<-names(self_pruning_split)
 
 ############################################
 ## applying the complementarity function
 ## to calculate the simulated complementarity
-## of each plot mixture plot by drawing
+## of each mixture plot by drawing
 ## monoculture trees
 
-## this procedure needs to be updated because mortalities
-## in the self-pruning data are not "true" mortalities
-## so we need a sampling procedure to determine whether
-## to select dead trees based on actual mortality rates
-## in the full community survey
-## in this case, we want to 'draw' mortality rates from
-## monoculture plots in the mortality data frame
-
-## need to add input of the mortality df
+## simulate a new plot by combining the monocultures
+## of the constituent species in the same block
 plot_simulator<-function(plot,sp_df,mortality_df) {
-
-  ## simulate a new plot by combining the monocultures
-  ## of the constituent species in the same block
   
-  ## extract features of the mixture plot
+  ## extract species composition and block of plot
   plot_comp<-unique(plot$Species)
   plot_block<-plot$Block[1]
+  plot_name<-plot$Plot[1]
   
   ## this works since monoculture plots have a name
   ## that is simply the one species they contain
-  sim_plot_match<-which(sp_df$Block==plot_block & sp_df$Plot %in% plot_comp)
-  sim_plot<-self_pruning[sim_plot_match,]
-  return(sim_plot)
+  sim_sp_match<-which(sp_df$Block==plot_block & sp_df$Plot %in% plot_comp)
+  sim_sp<-sp_df[sim_sp_match,]
+  
+  sim_mortality_match<-with(mortality_df,which(Block==plot_block & Plot %in% plot_comp))
+  sim_mortality<-mortality_df[sim_mortality_match,]
+  
+  orig_sp_match<-which(sp_df$Block==plot_block & sp_df$Plot==plot_name)
+  orig_sp<-sp_df[orig_sp_match,]
+  
+  orig_mortality_match<-with(mortality_df,which(Block==plot_block & Plot==plot_name))
+  orig_mortality<-mortality_df[orig_mortality_match,]
+  
+  sim_all<-list(sim_sp=sim_sp,
+                sim_mortality=sim_mortality,
+                orig_sp=orig_sp,
+                orig_mortality=orig_mortality)
+  
+  return(sim_all)
   
 }
 
-split_nbsp<-unlist(lapply(self_pruning_split,function(x) x$nbsp[1]))
-self_pruning_mix<-self_pruning_split[-which(split_nbsp==1)]
+## optionally can run on just mixture plots
+# split_nbsp<-unlist(lapply(self_pruning_split,function(x) x$nbsp[1]))
+# self_pruning_mix<-self_pruning_split[-which(split_nbsp==1)]
 
-self_pruning_sim<-lapply(self_pruning_mix,
+self_pruning_sim<-lapply(self_pruning_split,
                          plot_simulator,
-                         sp_df=self_pruning)
-## need to input mortality data here
-plot_CCI_sim<-lapply(self_pruning_sim,plot_CCI)
+                         sp_df=self_pruning,
+                         mortality_df=mortality_2018)
+
+plot_CCI_sim<-lapply(self_pruning_sim,function(x) plot_CCI(sp_plot=x$sp_plot,
+                                                           mortality_plot = x$mortality_plot))
+plot_CCI_sim_means<-lapply(plot_CCI_sim,colMeans,na.rm=T)
+plot_CCI_sim_df<-data.frame(do.call(rbind,plot_CCI_sim_means))
+plot_CCI_sim_df$unique_plot<-names(self_pruning_sim)
+
+# sim_match<-match(plot_CCI_df$unique_plot,plot_CCI_sim_df$unique_plot)
+# plot_CCI_df$sim_CCI_2D<-plot_CCI_sim_df$CCI_2D[sim_match]
+# plot_CCI_df$sim_CCI_3D<-plot_CCI_sim_df$CCI_3D[sim_match]
+# plot_CCI_df$sim_CCI_min_2D<-plot_CCI_sim_df$CCI_min_2D[sim_match]
+# plot_CCI_df$sim_CCI_min_3D<-plot_CCI_sim_df$CCI_min_3D[sim_match]
+
+################################################
+## applying the complementarity function
+## to calculate the simulated complementarity
+## of each mixture plot by drawing mixture trees
+## but with crown depth from monoculture
+
+## here we need a function to pull both monoculture and mixture plots
+
+## then sample 
