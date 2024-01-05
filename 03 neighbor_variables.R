@@ -8,6 +8,8 @@ library(FD)
 library(ggplot2)
 
 Inventory2018<-read.csv("IDENTMontrealData/Inventory2018_cleaned.csv")
+
+## extract row and column from position indicator
 Inventory2018$Col<-str_sub(Inventory2018$Pos,1,1)
 Inventory2018$Row<-as.numeric(str_sub(Inventory2018$Pos,2,2))
 
@@ -47,7 +49,7 @@ neighbor.finder<-function(dat,outcome.var,sp.var,radius){
 
 ## grab basal areas of neighbors
 ## within radius of 1.1 m
-## this is 90th percentile of measured crown radii
+## this is the 90th percentile of measured crown radii
 ## (concatenating CR1, CR2, CR3, CR4 from self pruning data)
 neighbor.area.NCI<-neighbor.finder(Inventory2018,"BasalArea","CodeSp",radius=1.1)
 
@@ -166,21 +168,21 @@ neighbor.data<-data.frame(unique_tree=names(neighbor.area.NCI),
 ## calculate plot-level overyielding
 
 ## to correspond with the sampling in the self-pruning project:
+## keep only blocks A and D
+Inventory2018_sub<-subset(Inventory2018_sub,Block %in% c("A","D"))
+## keep only plots with just native species
+Inventory2018_sub<-subset(Inventory2018_sub,
+                          !grepl(del_plot_pattern,unique_tree))
+## remove 12-species plots
+Inventory2018_sub<-subset(Inventory2018_sub,PlotRichness!=12)
+
 ## remove edge trees
-## only blocks A and D
-## only plots with just native species
-## no 12-species plots
 edge.trees<-c(paste(LETTERS[1:8],"1",sep=""),
               paste(LETTERS[1:8],"8",sep=""),
               paste("A",1:8,sep=""),
               paste("H",1:8,sep=""))
 edge_pattern<-paste(edge.trees,collapse="|")
 Inventory2018_sub<-Inventory2018[-which(grepl(edge_pattern,Inventory2018$Pos)),]
-
-Inventory2018_sub<-subset(Inventory2018_sub,Block %in% c("A","D"))
-Inventory2018_sub<-subset(Inventory2018_sub,
-                          !grepl(del_plot_pattern,unique_tree))
-Inventory2018_sub<-subset(Inventory2018_sub,PlotRichness!=12)
 
 ## create a dummy variable with a value of 1 for all planted trees
 Inventory2018_sub$num_planted<-1
