@@ -167,14 +167,13 @@ neighbor.data<-data.frame(unique_tree=names(neighbor.area.NCI),
 #################################
 ## calculate plot-level overyielding
 
-## to correspond with the sampling in the self-pruning project:
-## keep only blocks A and D
-Inventory2018_sub<-subset(Inventory2018_sub,Block %in% c("A","D"))
 ## keep only plots with just native species
-Inventory2018_sub<-subset(Inventory2018_sub,
+Inventory2018_sub<-subset(Inventory2018,
                           !grepl(del_plot_pattern,unique_tree))
-## remove 12-species plots
-Inventory2018_sub<-subset(Inventory2018_sub,PlotRichness!=12)
+## we won't remove 12-species plots or blocks B and C
+## although we could to correspond with the self-pruning survey
+# Inventory2018_sub<-subset(Inventory2018_sub,PlotRichness!=12)
+# Inventory2018_sub<-subset(Inventory2018,Block %in% c("A","D"))
 
 ## remove edge trees
 edge.trees<-c(paste(LETTERS[1:8],"1",sep=""),
@@ -182,7 +181,7 @@ edge.trees<-c(paste(LETTERS[1:8],"1",sep=""),
               paste("A",1:8,sep=""),
               paste("H",1:8,sep=""))
 edge_pattern<-paste(edge.trees,collapse="|")
-Inventory2018_sub<-Inventory2018[-which(grepl(edge_pattern,Inventory2018$Pos)),]
+Inventory2018_sub<-Inventory2018_sub[-which(grepl(edge_pattern,Inventory2018_sub$Pos)),]
 
 ## create a dummy variable with a value of 1 for all planted trees
 Inventory2018_sub$num_planted<-1
@@ -195,19 +194,24 @@ Inventory2018_sub$num_planted<-1
 Inventory2018_sub$BasalArea_0<-Inventory2018_sub$BasalArea
 Inventory2018_sub$BasalArea_0[which(is.na(Inventory2018_sub$BasalArea_0))]<-0
 
+## aggregate basal area and planted individuals by plot x species
 plot_sp_ba<-aggregate(cbind(BasalArea_0,num_planted)~Block+Plot+CodeSp+PlotRichness,
                       data=Inventory2018_sub,
                       FUN=sum,na.rm=T)
 
 plot_sp_ba$planted_freq<-plot_sp_ba$num_planted/36
 
+## attach monoculture plot basal area from the same block and species
 plot_sp_ba_mono<-subset(plot_sp_ba,PlotRichness==1)
-plot_sp_ba$mono<-apply(plot_sp_ba,1,
-                       function(x) {
-                         plot_sp_ba_mono$BasalArea_0[plot_sp_ba_mono$CodeSp==x["CodeSp"] & 
-                                                     plot_sp_ba_mono$Block==x["Block"]]
-                       })
-plot_sp_ba$mono_exp<-plot_sp_ba$mono*plot_sp_ba$planted_freq
+plot_sp_ba$mono_ba<-apply(plot_sp_ba,1,
+                          function(x) {
+                            plot_sp_ba_mono$BasalArea_0[plot_sp_ba_mono$CodeSp==x["CodeSp"] & 
+                                                          plot_sp_ba_mono$Block==x["Block"]]
+                          })
+
+## calculate monoculture expectations based on
+## monoculture basal area and planted frequency in mixture
+plot_sp_ba$mono_exp<-plot_sp_ba$mono_ba*plot_sp_ba$planted_freq
 plot_sp_ba$spOY<-(plot_sp_ba$BasalArea_0-plot_sp_ba$mono_exp)*9*10000/1000000
 
 plot_ba<-aggregate(spOY~Block+Plot+PlotRichness,
@@ -274,16 +278,28 @@ plot.FTD<-FTD.comm(tdmat=dist(core_traits_sub),
 ## and heterogeneity in shade tolerance
 shade_tol<-setNames(trait_summary$shade_tol,
                     trait_summary$SpeciesCode)[colnames(planted_comm)]
-plot_sth<-fdisp(dist(shade_tol),a = as.matrix(planted_comm))$FDis
+plot_STH<-fdisp(dist(shade_tol),a = as.matrix(planted_comm))$FDis
 plot.FTD_STH<-FTD.comm(tdmat=dist(shade_tol),
+                       spmat = as.matrix(planted_comm),
+                       abund=T)
+
+## and heterogeneity in Lbase
+species_means<-read.csv("SelfPruningData/species_means.csv")
+Lbase<-setNames(species_means$logLightBase,
+                species_means$Species)[colnames(planted_comm)]
+plot_LH<-fdisp(dist(Lbase),a = as.matrix(planted_comm))$FDis
+plot.FTD_LH<-FTD.comm(tdmat=dist(Lbase),
                        spmat = as.matrix(planted_comm),
                        abund=T)
 
 plot_vars<-data.frame(unique_plot=rownames(planted_comm),
                       FDis=plot_fdis,
-                      STH=plot_sth,
+                      STH=plot_STH,
+                      LH=plot_LH,
                       FTD=plot.FTD$com.FTD$qDTM,
-                      FTD_STH=plot.FTD_STH$com.FTD$qDTM)
+                      FTD_STH=plot.FTD_STH$com.FTD$qDTM,
+                      FTD_LH=plot.FTD_LH$com.FTD$qDTM,
+                      richness=plot.FTD$com.FTD$nsp)
 
 plot_vars$OY<-plot_ba$spOY[match(plot_vars$unique_plot,plot_ba$unique_plot)]
 
