@@ -216,6 +216,11 @@ crown_vol_plot$unique_plot<-paste(crown_vol_plot$Block,crown_vol_plot$Plot,sep="
 crown_vol_plot$FDis<-plot_vars$FDis[match(crown_vol_plot$unique_plot,plot_vars$unique_plot)]
 crown_vol_plot$FTD<-plot_vars$FTD[match(crown_vol_plot$unique_plot,plot_vars$unique_plot)]
 
+##########################################
+## plotting canopy packing results
+
+
+
 ######################################
 ## function to calculate complementarity
 ## for a pair of trees
