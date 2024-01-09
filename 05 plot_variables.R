@@ -47,11 +47,12 @@ Inventory2018_sub$num_planted<-1
 Inventory2018_sub$BasalArea_0<-Inventory2018_sub$BasalArea
 Inventory2018_sub$BasalArea_0[which(is.na(Inventory2018_sub$BasalArea_0))]<-0
 
-## aggregate basal area and planted individuals by plot x species
+## sum basal area and number of planted individuals by plot x species
 plot_sp_ba<-aggregate(cbind(BasalArea_0,num_planted)~Block+Plot+CodeSp+PlotRichness,
                       data=Inventory2018_sub,
                       FUN=sum,na.rm=T)
 
+## calculate planted frequencies (36 individuals per plot)
 plot_sp_ba$planted_freq<-plot_sp_ba$num_planted/36
 
 ## attach monoculture plot basal area from the same block and species
@@ -165,3 +166,25 @@ plot_vars$OY<-plot_ba$spOY[match(plot_vars$unique_plot,plot_ba$unique_plot)]
 ## plot_vars$block<-unlist(lapply(strsplit(plot_vars$unique_plot,split = "_"),function(x) x[[1]]))
 
 # write.csv(plot_vars,"IDENTMontrealData/plot_vars.csv",row.names=F)
+
+
+OY_FTD<-ggplot(plot_vars,aes(x=FTD,y=OY))+
+  geom_point(size=2)+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  labs(x=expression(""^q*"D(TM) of functional traits"),
+       y=expression("Overyielding ( "*m^2*" "*ha^{-1}*")"))
+
+OY_FTD_STH<-ggplot(plot_vars,aes(x=FTD_STH,y=OY))+
+  geom_point(size=2)+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  labs(x=expression(""^q*"D(TM) of shade tolerance"),
+       y=expression("Overyielding ( "*m^2*" "*ha^{-1}*")"))
+
+OY_FTD_LH<-ggplot(plot_vars,aes(x=FTD_LH,y=OY))+
+  geom_point(size=2)+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  labs(x=expression(""^q*"D(TM) of "*italic("L"*""[base])),
+       y=expression("Overyielding ( "*m^2*" "*ha^{-1}*")"))
