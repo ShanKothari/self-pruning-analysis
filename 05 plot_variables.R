@@ -68,10 +68,12 @@ plot_sp_ba$mono_ba<-apply(plot_sp_ba,1,
 plot_sp_ba$mono_exp<-plot_sp_ba$mono_ba*plot_sp_ba$planted_freq
 ## convert from cm^2 per plot (9 m^2) to m^2 per hectare
 plot_sp_ba$spOY<-(plot_sp_ba$BasalArea_0-plot_sp_ba$mono_exp)/9
+plot_sp_ba$BasalArea<-plot_sp_ba$BasalArea_0/9
 
-plot_ba<-aggregate(spOY~Block+Plot+PlotRichness,
+plot_ba<-aggregate(cbind(BasalArea,spOY)~Block+Plot+PlotRichness,
                    data=plot_sp_ba,
                    FUN=sum,na.rm=T)
+plot_ba$spOY[plot_ba$PlotRichness==1]<-NA
 
 plot_ba$unique_plot<-paste(plot_ba$Block,
                            plot_ba$Plot,
@@ -160,10 +162,11 @@ plot_vars<-data.frame(unique_plot=rownames(planted_comm),
                       FTD_LH=plot.FTD_LH$com.FTD$qDTM,
                       richness=plot.FTD$com.FTD$nsp)
 
+plot_vars$BasalArea<-plot_ba$BasalArea[match(plot_vars$unique_plot,plot_ba$unique_plot)]
 plot_vars$OY<-plot_ba$spOY[match(plot_vars$unique_plot,plot_ba$unique_plot)]
 
 ## to try block random effects, but always singular
-## plot_vars$block<-unlist(lapply(strsplit(plot_vars$unique_plot,split = "_"),function(x) x[[1]]))
+plot_vars$block<-unlist(lapply(strsplit(plot_vars$unique_plot,split = "_"),function(x) x[[1]]))
 
 # write.csv(plot_vars,"IDENTMontrealData/plot_vars.csv",row.names=F)
 
