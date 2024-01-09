@@ -170,24 +170,44 @@ plot_vars$block<-unlist(lapply(strsplit(plot_vars$unique_plot,split = "_"),funct
 
 # write.csv(plot_vars,"IDENTMontrealData/plot_vars.csv",row.names=F)
 
-
-OY_FTD<-ggplot(plot_vars,aes(x=FTD,y=OY))+
+BA_FTD<-ggplot(plot_vars,aes(x=log(FTD),y=BasalArea))+
   geom_point(size=2)+
   theme_bw()+
   theme(text=element_text(size=20))+
-  labs(x=expression(""^q*"D(TM) of functional traits"),
+  labs(x=expression("log("^q*"D(TM)) of functional traits"),
+       y=expression("Basal area ( "*m^2*" "*ha^{-1}*")"))
+
+BA_FTD_STH<-ggplot(plot_vars,aes(x=log(FTD_STH),y=BasalArea))+
+  geom_point(size=2)+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  labs(x=expression("log("^q*"D(TM)) of shade tolerance"),
+       y=expression("Basal area ( "*m^2*" "*ha^{-1}*")"))
+
+BA_FTD_LH<-ggplot(plot_vars,aes(x=log(FTD_LH),y=BasalArea))+
+  geom_point(size=2)+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
+       y=expression("Basal area ( "*m^2*" "*ha^{-1}*")"))
+
+OY_FTD<-ggplot(plot_vars,aes(x=log(FTD),y=OY))+
+  geom_point(size=2)+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  labs(x=expression("log("^q*"D(TM)) of functional traits"),
        y=expression("Overyielding ( "*m^2*" "*ha^{-1}*")"))
 
-OY_FTD_STH<-ggplot(plot_vars,aes(x=FTD_STH,y=OY))+
+OY_FTD_STH<-ggplot(plot_vars,aes(x=log(FTD_STH),y=OY))+
   geom_point(size=2)+
   theme_bw()+
   theme(text=element_text(size=20))+
-  labs(x=expression(""^q*"D(TM) of shade tolerance"),
+  labs(x=expression("log("^q*"D(TM)) of shade tolerance"),
        y=expression("Overyielding ( "*m^2*" "*ha^{-1}*")"))
 
-OY_FTD_LH<-ggplot(plot_vars,aes(x=FTD_LH,y=OY))+
+OY_FTD_LH<-ggplot(plot_vars,aes(x=log(FTD_LH),y=OY))+
   geom_point(size=2)+
   theme_bw()+
   theme(text=element_text(size=20))+
-  labs(x=expression(""^q*"D(TM) of "*italic("L"*""[base])),
+  labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
        y=expression("Overyielding ( "*m^2*" "*ha^{-1}*")"))
