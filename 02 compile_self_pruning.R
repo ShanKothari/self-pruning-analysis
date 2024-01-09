@@ -108,14 +108,18 @@ self_pruning$acq_dist_abs<- abs(self_pruning$acq_dist)
 #######################################
 ## working with species means
 
-## could look only at trees in monoculture plots
-## although I currently do not
-self_pruning_mono<-self_pruning[self_pruning$nbsp==1,]
+## species means of crown base light
+species_means<-aggregate(logLightBase~Species,data = self_pruning,
+                         FUN = mean,na.rm = T)
 
 ## species means of crown base light
-self_pruning_sub<-self_pruning[,c("logLightBase","Species","HeightTop","BasalArea")]
-species_means<-aggregate(.~Species,data = self_pruning_sub,
-                         FUN = mean,na.rm = T)
+## from only monoculture plots
+self_pruning_mono<-self_pruning[self_pruning$nbsp==1,]
+mono_means<-aggregate(logLightBase~Species,data = self_pruning_mono,
+                      FUN = mean,na.rm = T)
+
+species_means$logLightBase_mono<-mono_means$logLightBase[match(species_means$Species,
+                                                               mono_means$Species)]
 
 ## attach traits to species means
 trait_match_means<-match(species_means$Species,trait_summary$SpeciesCode)
