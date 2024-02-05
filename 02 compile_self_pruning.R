@@ -3,6 +3,8 @@ setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 library(ggplot2)
 library(chron)
 library(fishmethods)
+library(plotrix)
+library(patchwork)
 
 ## manual changes to data files sent by Jon:
 ## corrected "DEAd" to "DEAD" for A	4N8	4	THOC
@@ -112,6 +114,12 @@ self_pruning$acq_dist_abs<- abs(self_pruning$acq_dist)
 species_means<-aggregate(logLightBase~Species,data = self_pruning,
                          FUN = mean,na.rm = T)
 
+## standard errors of crown base light
+species_se<-aggregate(logLightBase~Species,data = self_pruning,
+                         FUN = std.error,na.rm = T)
+species_means$logLightBase_se<-species_se$logLightBase[match(species_means$Species,
+                                                               species_se$Species)]
+
 ## species means of crown base light
 ## from only monoculture plots
 self_pruning_mono<-self_pruning[self_pruning$nbsp==1,]
@@ -156,14 +164,20 @@ lfbase_ll_sp<-ggplot(data=species_means,
                          y=logLightBase,
                          label=Species))+
   geom_smooth(method="lm")+
+  geom_smooth(data=species_means[species_means$leaf_habit=="Evergreen",],
+              aes(x=log(leaf_lifespan),y=logLightBase),
+              method="lm",color="red",se=F)+
   geom_text(size=5,aes(color=leaf_habit))+
+#  geom_point(size=4,aes(color=leaf_habit))+
+  geom_errorbar(aes(ymin=logLightBase-logLightBase_se,
+                    ymax=logLightBase+logLightBase_se))+
   theme_bw()+
   theme(text=element_text(size=20))+
   coord_cartesian(ylim=c(-6.5,-2.5))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
   labs(x="log(leaf lifespan [months])",
-       y=expression(paste("log (",italic(L[base]),")")))
+       y=expression(italic(L[base])))
 # ggsave(filename = "Images/lfbase_ll_sp.png",plot = lfbase_ll_sp,
 #        width=6,height=5,units="in",dpi=600)
 
@@ -173,16 +187,19 @@ lfbase_st_sp<-ggplot(data=species_means,
                          label=Species))+
   geom_smooth(method="lm")+
   geom_text(size=5,aes(color=leaf_habit))+
+#  geom_point(size=4,aes(color=leaf_habit))+
+  geom_errorbar(aes(ymin=logLightBase-logLightBase_se,
+                    ymax=logLightBase+logLightBase_se))+
   theme_bw()+
   theme(text=element_text(size=20))+
   coord_cartesian(ylim=c(-6.5,-2.5))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
   # labs(x="Tol\u00e9rance \u00e0 l'ombre",
-  #      y=expression(paste("log (",italic(L[base]),")")))
+  #      y=expression(italic(L[base])))
   labs(x="Shade tolerance",
-       y=expression(paste("log (",italic(L[base]),")")))
-# ggsave(filename = "Images/lfbase_st_sp_FR.png",plot = lfbase_st_sp,
+       y=expression(italic(L[base])))
+# ggsave(filename = "Images/lfbase_st_sp.png",plot = lfbase_st_sp,
 #        width=6,height=5,units="in",dpi=600)
 
 lfbase_acq_sp<-ggplot(data=species_means,
@@ -191,16 +208,19 @@ lfbase_acq_sp<-ggplot(data=species_means,
                           label=Species))+
   geom_smooth(method="lm")+
   geom_text(size=5,aes(color=leaf_habit))+
+#  geom_point(size=4,aes(color=leaf_habit))+
+  geom_errorbar(aes(ymin=logLightBase-logLightBase_se,
+                    ymax=logLightBase+logLightBase_se))+
   theme_bw()+
   theme(text=element_text(size=20))+
   coord_cartesian(ylim=c(-6.5,-2.5))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
   # labs(x="Tendance acquisitive (CP1)",
-  #      y=expression(paste("log (",italic(L[base]),")")))
+  #      y=expression(italic(L[base])))
   labs(x="Focal tree acquisitiveness",
-       y=expression(paste("log (",italic(L[base]),")")))
-# ggsave(filename = "Images/lfbase_acq_sp_FR.png", plot = lfbase_acq_sp,
+       y=expression(italic(L[base])))
+# ggsave(filename = "Images/lfbase_acq_sp.png", plot = lfbase_acq_sp,
 #        width=6,height=5,units="in",dpi=600)
 
 ## PC2 from the trait data (mostly LDMC)
@@ -213,3 +233,7 @@ lfbase_acq_sp<-ggplot(data=species_means,
 #   theme(text=element_text(size=15))+
 #   labs(x="Shade tolerance",
 #        y="PC2")
+
+pdf("Images/Fig1.pdf",width = 4,height=12)
+lfbase_st_sp/lfbase_acq_sp/lfbase_ll_sp
+dev.off()

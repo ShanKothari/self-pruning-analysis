@@ -186,28 +186,33 @@ BA_FTD_STH<-ggplot(plot_vars,aes(x=log(FTD_STH),y=BasalArea))+
 
 BA_FTD_LH<-ggplot(plot_vars,aes(x=log(FTD_LH),y=BasalArea))+
   geom_point(size=2)+
+  geom_smooth(method="lm")+
   theme_bw()+
   theme(text=element_text(size=20))+
-  labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
+  # labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
+  #      y=expression("Basal area ( "*m^2*" "*ha^{-1}*")"))
+  labs(x=expression("Diversity of "*italic("L"*""[base])),
        y=expression("Basal area ( "*m^2*" "*ha^{-1}*")"))
+ggsave(filename = "Images/BA_FTD_LF.png", plot = BA_FTD_LH,
+       width=6,height=5,units="in",dpi=600)
 
 OY_FTD<-ggplot(plot_vars,aes(x=log(FTD),y=OY))+
   geom_point(size=2)+
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x=expression("log("^q*"D(TM)) of functional traits"),
-       y=expression("Overyielding ( "*m^2*" "*ha^{-1}*")"))
+       y=expression("NBE ( "*m^2*" "*ha^{-1}*")"))
 
 OY_FTD_STH<-ggplot(plot_vars,aes(x=log(FTD_STH),y=OY))+
   geom_point(size=2)+
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x=expression("log("^q*"D(TM)) of shade tolerance"),
-       y=expression("Overyielding ( "*m^2*" "*ha^{-1}*")"))
+       y=expression("NBE ( "*m^2*" "*ha^{-1}*")"))
 
 OY_FTD_LH<-ggplot(plot_vars,aes(x=log(FTD_LH),y=OY))+
   geom_point(size=2)+
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
-       y=expression("Overyielding ( "*m^2*" "*ha^{-1}*")"))
+       y=expression("NBE ( "*m^2*" "*ha^{-1}*")"))
