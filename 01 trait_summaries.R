@@ -86,8 +86,9 @@ trait_pca_plot<-ggplot(trait_pca_scores,
   labs(x=paste("CP1 (",round(trait_pca_perc[1],1),"% variance)",sep=""),
        y=paste("CP2 (",round(trait_pca_perc[2],1),"% variance)",sep=""))
 
-ggsave("Images/trait_pca_plot.png", trait_pca_plot, bg='transparent',
-       dpi=600,width=7,height=4)
+pdf("Images/FigS1.pdf",width=7,height=4)
+trait_pca_plot
+dev.off()
 
 trait_summary<-cbind(traits,trait_pca_scores)
 trait_summary$species<-NULL
