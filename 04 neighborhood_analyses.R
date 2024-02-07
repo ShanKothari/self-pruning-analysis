@@ -2,9 +2,23 @@ setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 
 library(ggplot2)
 library(ggpubr)
+library(GGally)
 library(lme4)
+library(lmerTest)
 
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
+
+########################################
+## relationships among individual-level variables
+
+ind_level_vars<-c("neighbor_acq","neighbor_comp","HeightTop","logLightTop")
+
+pair_plot<-ggpairs(self_pruning,
+                   columns=ind_level_vars,
+                   aes(color=Species),
+                   lower = list(continuous = wrap("smooth",
+                                                  method = "lm",
+                                                  se=F)))
 
 ########################################
 ## examining simple relationships within the bivariate data
@@ -20,22 +34,7 @@ qDTM_plastic<-ggplot(self_pruning,
                          color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=15))
-
-NCI_plastic<-ggplot(self_pruning,
-                    aes(x=neighbor_comp,
-                        y=logLightBase,
-                        color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
-  theme_bw()+
-  theme(text=element_text(size=20))+
-  labs(x="Indice de comp\u00e9tition (NCI)",
-       y=expression(paste("log (",italic(L[base]),")")))+
-  # labs(x="NCI",
-  #      y="log(light fraction) at crown base")+
-  guides(color="none")
-# ggsave(filename="Images/NCI_plastic.png",NCI_plastic,
-#        width=6,height=5,dpi=600)
+  theme(text=element_text(size=20))
 
 neighbor_acq_plastic<-ggplot(self_pruning,
                              aes(x=neighbor_acq,
@@ -43,9 +42,9 @@ neighbor_acq_plastic<-ggplot(self_pruning,
                                  color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=15))+
+  theme(text=element_text(size=20))+
   labs(x="Neighbor acquisitiveness",
-       y=expression(paste("log (",italic(L[base]),")")))+
+       y=expression(italic(L[base])))+
   guides(color="none")
 
 # png("Images/lfbase_nacq_ind.png",width=7,height=5,units="in",res=150)
@@ -58,10 +57,25 @@ acq_dist_plastic<-ggplot(self_pruning,
                              color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=15))+
+  theme(text=element_text(size=20))+
   labs(x="Functional distance from neighbors",
-       y="log(light fraction) at crown base")+
+       y=expression(italic(L[base])))+
   guides(color="none")
+
+NCI_plastic<-ggplot(self_pruning,
+                    aes(x=neighbor_comp,
+                        y=logLightBase,
+                        color=Species))+
+  geom_point()+geom_smooth(method="lm",se=F)+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  # labs(x="Indice de comp\u00e9tition (NCI)",
+  #      y=expression(italic(L[base])))+
+  labs(x="NCI",
+       y=expression(italic(L[base])))+
+  guides(color="none")
+# ggsave(filename="Images/NCI_plastic.png",NCI_plastic,
+#        width=6,height=5,dpi=600)
 
 ## test of correlative inhibition:
 ## we should expect a positive slope here
@@ -71,9 +85,9 @@ light_top_plastic<-ggplot(self_pruning,
                               color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=15))+
-  labs(x="log(light fraction) at crown top",
-       y="log(light fraction) at crown base")
+  theme(text=element_text(size=20))+
+  labs(x=expression(italic(L[top])),
+       y=expression(italic(L[base])))
 
 ## this plot is kind of odd and visually striking...
 height_plastic<-ggplot(self_pruning,
@@ -82,23 +96,13 @@ height_plastic<-ggplot(self_pruning,
                            color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=15))+
+  theme(text=element_text(size=20))+
   labs(x="Tree height",
-       y="log(light fraction) at crown base")+
+       y=expression(italic(L[base])))+
   guides(color="none")
 
+############################################
 ## relationships with crown depth
-
-NCI_plastic_CD<-ggplot(self_pruning,
-                       aes(x=neighbor_comp,
-                           y=CrownDepth,
-                           color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
-  theme_bw()+
-  theme(text=element_text(size=15))+
-  labs(x="NCI",
-       y="Crown depth (cm)")+
-  guides(color="none")
 
 neighbor_acq_plastic_CD<-ggplot(self_pruning,
                                 aes(x=neighbor_acq,
@@ -106,8 +110,19 @@ neighbor_acq_plastic_CD<-ggplot(self_pruning,
                                     color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=15))+
+  theme(text=element_text(size=20))+
   labs(x="Neighbor acquisitiveness",
+       y="Crown depth (cm)")+
+  guides(color="none")
+
+NCI_plastic_CD<-ggplot(self_pruning,
+                       aes(x=neighbor_comp,
+                           y=CrownDepth,
+                           color=Species))+
+  geom_point()+geom_smooth(method="lm",se=F)+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  labs(x="NCI",
        y="Crown depth (cm)")+
   guides(color="none")
 
@@ -117,7 +132,7 @@ light_top_plastic_CD<-ggplot(self_pruning,
                                  color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=15))+
+  theme(text=element_text(size=20))+
   labs(x="log(light fraction) at crown top",
        y="Crown depth (cm)")
 
@@ -127,13 +142,15 @@ height_plastic_CD<-ggplot(self_pruning,
                               color=Species))+
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=15))+
+  theme(text=element_text(size=20))+
   labs(x="Tree height",
        y="Crown depth (cm)")+
   guides(color="none")
 
 ################################################
 ## pull out the species-specific slopes from mixed-effects models
+
+species_means<-read.csv("SelfPruningData/species_means.csv")
 
 light_neighbor_acq_sp<-lmer(logLightBase~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
 species_means$light_neighbor_acq_slope<-rep(fixef(light_neighbor_acq_sp)[2],12)+c(0,fixef(light_neighbor_acq_sp)[14:24])
@@ -151,6 +168,9 @@ anova(light_height_sp, type="III")
 light_toplight_sp<-lmer(logLightBase~logLightTop*Species+(1|unique_plot),data=self_pruning)
 species_means$light_toplight_slope<-rep(fixef(light_toplight_sp)[2],12)+c(0,fixef(light_toplight_sp)[15:25])
 anova(light_toplight_sp, type="III")
+
+leaf_habit_cols<-c("Deciduous"="chocolate4",
+                   "Evergreen"="#60941a")
 
 neighbor_acq_slopes<-ggplot(data=species_means,
                             aes(x=focal_acq,
@@ -214,6 +234,6 @@ plot_compile<-ggpubr::ggarrange(neighbor_acq_plastic,neighbor_acq_slopes,
                                 ncol=2,nrow=4,
                                 common.legend=T,legend="bottom")
 
-pdf("Images/Fig2XX.pdf",height=16,width=8)
+pdf("Images/Fig4.pdf",height=20,width=10)
 plot_compile
 dev.off()
