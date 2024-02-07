@@ -1,6 +1,7 @@
 setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 
 library(mosaic)
+library(reshape2)
 
 ########################################
 ## data on crown shape and size
@@ -177,6 +178,13 @@ crown_vol_agg$null_sim_vol<-unlist(null_sim_crown_vols)
 crown_vol_agg$null_sim_vol_live<-crown_vol_agg$null_sim_vol*crown_vol_agg$prop_alive
 crown_vol_agg$total_sp_null_sim_vol<-crown_vol_agg$null_sim_vol_live*crown_vol_agg$num_planted
 
+## draw monocultures for simulation
+crown_vol_agg$crown_vol_mono_sim<-crown_vol_agg$sim_vol[mono_match]
+crown_vol_agg$crown_vol_mono_sim_live<-crown_vol_agg$crown_vol_mono_sim*crown_vol_agg$prop_alive_mono
+
+crown_vol_agg$crown_vol_mono_null_sim<-crown_vol_agg$null_sim_vol[mono_match]
+crown_vol_agg$crown_vol_mono_null_sim_live<-crown_vol_agg$crown_vol_mono_null_sim*crown_vol_agg$prop_alive_mono
+
 ######################################
 ## aggregating to the plot scale
 
@@ -185,9 +193,9 @@ crown_vol_agg$total_sp_null_sim_vol<-crown_vol_agg$null_sim_vol_live*crown_vol_a
 crown_vol_agg$OY_actual<-with(crown_vol_agg,
                               num_planted*(crown_vol_live-crown_vol_mono_live))
 crown_vol_agg$OY_sim<-with(crown_vol_agg,
-                           num_planted*(sim_vol_live-crown_vol_mono_live))
+                           num_planted*(sim_vol_live-crown_vol_mono_sim_live))
 crown_vol_agg$OY_null_sim<-with(crown_vol_agg,
-                           num_planted*(null_sim_vol_live-crown_vol_mono_live))
+                           num_planted*(null_sim_vol_live-crown_vol_mono_null_sim_live))
 
 ## and aggregating to the whole plot (inner 6 x 6 trees)
 ## since planting numbers / mortalities are only calculated
@@ -213,13 +221,59 @@ crown_vol_plot$OY_null_sim[which(crown_vol_plot$Richness==1)]<-NA
 plot_vars<-read.csv("IDENTMontrealData/plot_vars.csv")
 
 crown_vol_plot$unique_plot<-paste(crown_vol_plot$Block,crown_vol_plot$Plot,sep="_")
+crown_vol_plot$BasalArea<-plot_vars$BasalArea[match(crown_vol_plot$unique_plot,plot_vars$unique_plot)]
+
 crown_vol_plot$FDis<-plot_vars$FDis[match(crown_vol_plot$unique_plot,plot_vars$unique_plot)]
 crown_vol_plot$FTD<-plot_vars$FTD[match(crown_vol_plot$unique_plot,plot_vars$unique_plot)]
+crown_vol_plot$FTD_LH<-plot_vars$FTD_LH[match(crown_vol_plot$unique_plot,plot_vars$unique_plot)]
 
 ##########################################
 ## plotting canopy packing results
 
+## this should be very tightly clustered around the 1:1 line
+## because the 'null simulation' should be close to real values
+null_vs_real<-ggplot(crown_vol_plot,aes(x=total_sp_crown_vol/9,
+                                        y=total_sp_null_sim_vol/9,
+                                        color=as.factor(Richness)))+
+  geom_point(size=2)+
+  geom_abline(slope=1,intercept=0,linewidth=2,linetype="dashed")+
+  theme_bw()+
+  theme(text=element_text(size=15))+
+  labs(x="True crown volume per ground area (m)",
+       y="Null simulated crown volume per ground area (m)",
+       color="Richness")
 
+## this reveals that if you draw crown depth from monocultures,
+## you generally get less total crown volume
+sim_vs_real<-ggplot(crown_vol_plot[crown_vol_plot$Richness!=1,],
+                    aes(x=total_sp_crown_vol/9,
+                        y=total_sp_sim_vol/9,
+                        color=as.factor(Richness)))+
+  geom_point(size=2)+
+  geom_abline(slope=1,intercept=0,linewidth=2,linetype="dashed")+
+  theme_bw()+
+  theme(text=element_text(size=15))+
+  coord_cartesian(xlim=c(0,16),ylim=c(0,16))+
+  labs(x="True crown volume per ground area (m)",
+       y="Simulated crown volume per ground area (m)",
+       color="Richness")
+
+## wide to long
+crown_vol_plot_sub<-crown_vol_plot[,c("unique_plot","Richness","FTD","FTD_LH","OY_actual","OY_sim",
+                                      "total_sp_crown_vol","total_sp_sim_vol")]
+crown_vol_plot_long<-melt(crown_vol_plot_sub,id.vars=c("unique_plot","Richness","FTD","FTD_LH"))
+
+ggplot(crown_vol_plot_long,aes(x=FTD_LH,y=value/9,color=variable))+
+  geom_smooth(method="lm")+geom_point()+
+  theme_bw()+
+  labs(x="qDTM of LH",y="Crown volume or overyielding (m)")
+
+t.test(crown_vol_plot$total_sp_crown_vol[crown_vol_plot$Richness!=1]/9,
+       crown_vol_plot$total_sp_sim_vol[crown_vol_plot$Richness!=1]/9,
+       paired=T)
+
+t.test(crown_vol_plot$OY_actual/9)
+t.test(crown_vol_plot$OY_sim/9)
 
 ######################################
 ## function to calculate complementarity
