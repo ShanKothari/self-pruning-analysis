@@ -20,6 +20,10 @@ pair_plot<-ggpairs(self_pruning,
                                                   method = "lm",
                                                   se=F)))
 
+# pdf("Images/FigS3.pdf",height=16,width=16)
+# pair_plot
+# dev.off()
+
 ########################################
 ## examining simple relationships within the bivariate data
 
@@ -133,8 +137,9 @@ light_top_plastic_CD<-ggplot(self_pruning,
   geom_point()+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))+
-  labs(x="log(light fraction) at crown top",
-       y="Crown depth (cm)")
+  labs(x=expression(italic(L[top])),
+       y="Crown depth (cm)")+
+  guides(color="none")
 
 height_plastic_CD<-ggplot(self_pruning,
                           aes(x=HeightTop,
@@ -144,8 +149,31 @@ height_plastic_CD<-ggplot(self_pruning,
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x="Tree height",
-       y="Crown depth (cm)")+
-  guides(color="none")
+       y="Crown depth (cm)")
+
+plot_compile_CD<-ggpubr::ggarrange(neighbor_acq_plastic_CD,NCI_plastic_CD,
+                                   height_plastic_CD,light_top_plastic_CD,
+                                   ncol=1,nrow=4,
+                                   common.legend=T,legend="bottom")
+
+# pdf("Images/Fig5.pdf",height=24,width=7)
+# plot_compile_CD
+# dev.off()
+
+neighbor_acq_plastic_CB<-ggplot(self_pruning,
+                                aes(x=neighbor_acq,
+                                    y=HeightBase,
+                                    color=Species))+
+  geom_point()+geom_smooth(method="lm",se=F)+
+  theme_bw()+
+  theme(text=element_text(size=20),
+        legend.position = "bottom")+
+  labs(x="Neighbor acquisitiveness",
+       y="Crown base height (cm)")
+
+# pdf("Images/FigS4.pdf",height=8,width=7)
+# neighbor_acq_plastic_CB
+# dev.off()
 
 ################################################
 ## pull out the species-specific slopes from mixed-effects models
@@ -166,7 +194,7 @@ anova(light_height_sp, type="III")
 
 ## which species may show some evidence of correlative inhibition?
 light_toplight_sp<-lmer(logLightBase~logLightTop*Species+(1|unique_plot),data=self_pruning)
-species_means$light_toplight_slope<-rep(fixef(light_toplight_sp)[2],12)+c(0,fixef(light_toplight_sp)[15:25])
+species_means$light_toplight_slope<-rep(fixef(light_toplight_sp)[2],12)+c(0,fixef(light_toplight_sp)[14:24])
 anova(light_toplight_sp, type="III")
 
 leaf_habit_cols<-c("Deciduous"="chocolate4",
@@ -181,14 +209,17 @@ neighbor_acq_slopes<-ggplot(data=species_means,
   scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
   theme(text=element_text(size=20))+
+  guides(color="none")+
   labs(x="Focal acquisitiveness",
-       y=expression(paste("Slopes: ",italic(L[base])," ~ neighbor acquisitiveness")))
+       y=expression(paste("Slopes: ",
+                          italic(L[base]),
+                          " ~ neighbor acquisitiveness")))
 # ggsave(filename = "Images/neighbor_acq_slopes.png",neighbor_acq_slopes,
 #        dpi=600,width = 6,height=5)
 
 NCI_slopes<-ggplot(data=species_means,
                    aes(x=focal_acq,
-                       y=light_NCI_slope,
+                       y=light_NCI_slope*100,
                        label=Species))+
   geom_smooth(method="lm")+
   geom_text(size=5,aes(color=leaf_habit))+
@@ -197,7 +228,9 @@ NCI_slopes<-ggplot(data=species_means,
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
   labs(x="Focal acquisitiveness",
-       y=expression(paste("Slopes: ",italic(L[base])," ~ NCI")))
+       y=expression(paste("Slopes (" %*% "100): ",
+                          italic(L[base]),
+                          " ~ NCI")))
 # labs(x="Tendance acquisitive (CP1)",
 #      y=expression(paste("Pentes : ",italic(L[base])," ~ NCI")))
 # ggsave(filename = "Images/NCI_slopes_FR.png",NCI_slopes,
@@ -205,15 +238,18 @@ NCI_slopes<-ggplot(data=species_means,
 
 height_slopes<-ggplot(data=species_means,
                       aes(x=focal_acq,
-                          y=light_height_slope,
+                          y=light_height_slope*1000,
                           label=Species))+
   geom_smooth(method="lm")+
   geom_text(size=5,aes(color=leaf_habit))+
   scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
   theme(text=element_text(size=20))+
+  guides(color="none")+
   labs(x="Focal acquisitiveness",
-       y=expression(paste("Slopes: ",italic(L[base])," ~ top height")))
+       y=expression(paste("Slopes (" %*% "1000): ",
+                          italic(L[base]),
+                          " ~ top height")))
 
 light_top_slopes<-ggplot(data=species_means,
                          aes(x=focal_acq,
@@ -225,15 +261,36 @@ light_top_slopes<-ggplot(data=species_means,
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x="Focal acquisitiveness",
-       y=expression(paste("Slopes: ",italic(L[base])," ~ ",italic(L[top]))))
+       y=expression(paste("Slopes: ",
+                          italic(L[base]),
+                          " ~ ",italic(L[top]))),
+       color="Leaf habit")
 
-plot_compile<-ggpubr::ggarrange(neighbor_acq_plastic,neighbor_acq_slopes,
-                                NCI_plastic,NCI_slopes,
-                                height_plastic,height_slopes,
-                                light_top_plastic,light_top_slopes,
-                                ncol=2,nrow=4,
-                                common.legend=T,legend="bottom")
+plot_compile_Lbase<-ggpubr::ggarrange(neighbor_acq_plastic,neighbor_acq_slopes,
+                                      NCI_plastic,NCI_slopes,
+                                      height_plastic,height_slopes,
+                                      light_top_plastic,light_top_slopes,
+                                      ncol=2,nrow=4,
+                                      common.legend=T,legend="bottom")
 
-pdf("Images/Fig4.pdf",height=20,width=10)
-plot_compile
-dev.off()
+# pdf("Images/Fig4.pdf",height=24,width=12)
+# plot_compile_Lbase
+# dev.off()
+
+CD_neighbor_acq_sp<-lmer(CrownDepth~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
+species_means$CD_neighbor_acq_slope<-rep(fixef(CD_neighbor_acq_sp)[2],12)+c(0,fixef(CD_neighbor_acq_sp)[14:24])
+anova(CD_neighbor_acq_sp, type="III")
+
+CD_NCI_sp<-lmer(CrownDepth~neighbor_comp*Species+(1|unique_plot),data=self_pruning)
+species_means$CD_NCI_slope<-rep(fixef(CD_NCI_sp)[2],12)+c(0,fixef(CD_NCI_sp)[14:24])
+anova(CD_NCI_sp, type="III")
+
+CD_height_sp<-lmer(CrownDepth~HeightTop*Species+(1|unique_plot),data=self_pruning)
+species_means$CD_height_slope<-rep(fixef(CD_height_sp)[2],12)+c(0,fixef(CD_height_sp)[14:24])
+anova(CD_height_sp, type="III")
+
+## which species may show some evidence of correlative inhibition?
+CD_toplight_sp<-lmer(CrownDepth~logLightTop*Species+(1|unique_plot),data=self_pruning)
+species_means$CD_toplight_slope<-rep(fixef(CD_toplight_sp)[2],12)+c(0,fixef(CD_toplight_sp)[14:24])
+anova(CD_toplight_sp, type="III")
+
