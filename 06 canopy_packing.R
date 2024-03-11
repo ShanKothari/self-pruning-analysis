@@ -2,6 +2,7 @@ setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
 
 library(mosaic)
 library(reshape2)
+library(patchwork)
 
 ########################################
 ## data on crown shape and size
@@ -238,14 +239,18 @@ null_vs_real<-ggplot(crown_vol_plot,aes(x=total_sp_crown_vol/9,
   geom_point(size=2)+
   geom_abline(slope=1,intercept=0,linewidth=2,linetype="dashed")+
   theme_bw()+
-  theme(text=element_text(size=15))+
-  labs(x="True crown volume per ground area (m)",
-       y="Null simulated crown volume per ground area (m)",
-       color="Richness")
+  theme(text=element_text(size=15),
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank())+
+  coord_cartesian(xlim=c(0,16),ylim=c(0,16))+
+  labs(x="Actual crowns approach (m)",
+       y="Independent draws with plasticity (m)",
+       color="Richness")+
+  guides(color="none")
 
 ## this reveals that if you draw crown depth from monocultures,
 ## you generally get less total crown volume
-sim_vs_real<-ggplot(crown_vol_plot[crown_vol_plot$Richness!=1,],
+sim_vs_real<-ggplot(crown_vol_plot,
                     aes(x=total_sp_crown_vol/9,
                         y=total_sp_sim_vol/9,
                         color=as.factor(Richness)))+
@@ -254,25 +259,61 @@ sim_vs_real<-ggplot(crown_vol_plot[crown_vol_plot$Richness!=1,],
   theme_bw()+
   theme(text=element_text(size=15))+
   coord_cartesian(xlim=c(0,16),ylim=c(0,16))+
-  labs(x="True crown volume per ground area (m)",
-       y="Simulated crown volume per ground area (m)",
+  labs(x="Actual crowns approach (m)",
+       y="Independent draws without plasticity (m)",
        color="Richness")
 
+# pdf("Images/FigS6.pdf",height=9,width=5)
+# null_vs_real/sim_vs_real + 
+#   plot_layout(guides = "collect") & 
+#   theme(legend.position = 'bottom')
+# dev.off()
+
 ## wide to long
-crown_vol_plot_sub<-crown_vol_plot[,c("unique_plot","Richness","FTD","FTD_LH","OY_actual","OY_sim",
-                                      "total_sp_crown_vol","total_sp_sim_vol")]
+crown_vol_plot_sub<-crown_vol_plot[,c("unique_plot","Richness","FTD","FTD_LH","OY_actual","OY_sim","OY_null_sim",
+                                      "total_sp_crown_vol","total_sp_sim_vol","total_sp_null_sim_vol")]
 crown_vol_plot_long<-melt(crown_vol_plot_sub,id.vars=c("unique_plot","Richness","FTD","FTD_LH"))
+crown_vol_plot_total<-crown_vol_plot_long[which(crown_vol_plot_long$variable
+                                                %in% c("total_sp_null_sim_vol","total_sp_sim_vol")),]
 
-ggplot(crown_vol_plot_long,aes(x=FTD_LH,y=value/9,color=variable))+
-  geom_smooth(method="lm")+geom_point()+
+ggplot(crown_vol_plot_long,
+       aes(x=log(FTD_LH),
+           y=value/9,
+           color=variable))+
+  geom_smooth(method="lm",se=F)+geom_point()+
   theme_bw()+
-  labs(x="qDTM of LH",y="Crown volume or overyielding (m)")
+  labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
+       y="Crown volume or NBE per ground area (m)")
 
-t.test(crown_vol_plot$total_sp_crown_vol[crown_vol_plot$Richness!=1]/9,
+plasticity_comparison<-ggplot(crown_vol_plot_total,
+                              aes(x=log(FTD_LH),
+                                  y=value/9,
+                                  color=variable))+
+  geom_smooth(method="lm",se=F,linewidth=2)+
+  geom_point(size=2)+
+  theme_bw()+
+  theme(text=element_text(size=20),
+        legend.position = "bottom")+
+  scale_color_hue(labels = c("Without plasticity", "With plasticity"))+
+  labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
+       y="Crown volume per ground area (m)",
+       color="")
+
+# pdf("Images/Fig6.pdf",height=6,width=6)
+# plasticity_comparison
+# dev.off()
+
+summary(lm(total_sp_null_sim_vol~FTD_LH,data=crown_vol_plot))
+summary(lm(total_sp_sim_vol~FTD_LH,data=crown_vol_plot))
+
+summary(lm(total_sp_null_sim_vol~FTD,data=crown_vol_plot))
+summary(lm(total_sp_sim_vol~FTD,data=crown_vol_plot))
+
+t.test(crown_vol_plot$total_sp_null_sim_vol[crown_vol_plot$Richness!=1]/9,
        crown_vol_plot$total_sp_sim_vol[crown_vol_plot$Richness!=1]/9,
        paired=T)
 
-t.test(crown_vol_plot$OY_actual/9)
+t.test(crown_vol_plot$OY_null_sim/9)
 t.test(crown_vol_plot$OY_sim/9)
 
 ######################################
