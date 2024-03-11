@@ -51,7 +51,6 @@ rownames(traits_sub)<-traits$SpeciesCode
 ## do PCA of traits, extract scores and loadings
 ## no need to use scaling in the function
 ## because traits are already scaled
-
 trait_pca<-prcomp(traits_sub)
 trait_pca_scores<-data.frame(species = rownames(trait_pca$x),
                              trait_pca$x,
@@ -66,25 +65,28 @@ leaf_habit_cols<-c("Deciduous"="#a44f30",
 
 trait_pca_plot<-ggplot(trait_pca_scores, 
                        aes(x = -PC1, y = PC2)) +
-  geom_text(size = 3.5,label = trait_pca_scores$species,
+  geom_text(size = 4,label = trait_pca_scores$species,
             aes(color = trait_pca_scores$leaf_habit)) +
   geom_segment(data = trait_pca_loadings,
                aes(x = 0, y = 0, xend = -PC1*5, yend = PC2*5),
                arrow = arrow(length = unit(1/2, "picas")),
-               size=1,color="#3366FF") +
+               linewidth = 1,color = "#3366FF") +
   annotate("text",
            x = -trait_pca_loadings$PC1*5.5,
            y = trait_pca_loadings$PC2*5.5,
            label = trait_pca_loadings$variables,
            color="#3366FF")+
-  theme_bw()+theme(text=element_text(size=15),
-                   panel.background = element_rect(fill='transparent'), #transparent panel bg
-                   plot.background = element_rect(fill='transparent', color=NA))+
+  theme_bw()+
+  theme(text=element_text(size=15),
+        panel.background = element_rect(fill='transparent'), #transparent panel bg
+        plot.background = element_rect(fill='transparent', color=NA),
+        legend.position = c(0.1,0.17),
+        legend.background = element_rect(fill = NA))+
   coord_fixed(ratio=trait_pca_perc[2]/trait_pca_perc[1])+
-  guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
-  labs(x=paste("CP1 (",round(trait_pca_perc[1],1),"% variance)",sep=""),
-       y=paste("CP2 (",round(trait_pca_perc[2],1),"% variance)",sep=""))
+  labs(x=paste("PC1 (",round(trait_pca_perc[1],1),"% variance)",sep=""),
+       y=paste("PC2 (",round(trait_pca_perc[2],1),"% variance)",sep=""),
+       color="Leaf habit")
 
 pdf("Images/FigS1.pdf",width=7,height=4)
 trait_pca_plot
