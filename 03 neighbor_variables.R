@@ -1,4 +1,4 @@
-setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning/")
+setwd("C:/Users/Shan Kothari/Dropbox/PostdocProjects/SelfPruning/")
 source("../../DecomposingFD/R/AlphaFD.R")
 
 library(stringr)

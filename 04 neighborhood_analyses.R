@@ -5,6 +5,7 @@ library(ggpubr)
 library(GGally)
 library(lme4)
 library(lmerTest)
+library(emmeans)
 
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 
@@ -180,21 +181,28 @@ neighbor_acq_plastic_CB<-ggplot(self_pruning,
 
 species_means<-read.csv("SelfPruningData/species_means.csv")
 
+## no comparisons; REML = T by default
 light_neighbor_acq_sp<-lmer(logLightBase~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
-species_means$light_neighbor_acq_slope<-rep(fixef(light_neighbor_acq_sp)[2],12)+c(0,fixef(light_neighbor_acq_sp)[14:24])
+light_neighbor_acq_trend<-emtrends(light_neighbor_acq_sp,"Species",var="neighbor_acq")
+species_means$light_neighbor_acq_slope<-summary(light_neighbor_acq_trend)$neighbor_acq.trend
 anova(light_neighbor_acq_sp, type="III")
+## very similar results
+# Anova(light_neighbor_acq_sp, type="III",test.statistic = "F")
 
 light_NCI_sp<-lmer(logLightBase~neighbor_comp*Species+(1|unique_plot),data=self_pruning)
-species_means$light_NCI_slope<-rep(fixef(light_NCI_sp)[2],12)+c(0,fixef(light_NCI_sp)[14:24])
+light_NCI_trend<-emtrends(light_NCI_sp,"Species",var="neighbor_comp")
+species_means$light_NCI_slope<-summary(light_NCI_trend)$neighbor_comp.trend
 anova(light_NCI_sp, type="III")
 
 light_height_sp<-lmer(logLightBase~HeightTop*Species+(1|unique_plot),data=self_pruning)
-species_means$light_height_slope<-rep(fixef(light_height_sp)[2],12)+c(0,fixef(light_height_sp)[14:24])
+light_height_trend<-emtrends(light_height_sp,"Species",var="HeightTop")
+species_means$light_height_slope<-summary(light_height_trend)$HeightTop.trend
 anova(light_height_sp, type="III")
 
 ## which species may show some evidence of correlative inhibition?
 light_toplight_sp<-lmer(logLightBase~logLightTop*Species+(1|unique_plot),data=self_pruning)
-species_means$light_toplight_slope<-rep(fixef(light_toplight_sp)[2],12)+c(0,fixef(light_toplight_sp)[14:24])
+light_toplight_trend<-emtrends(light_toplight_sp,"Species",var="logLightTop")
+species_means$light_toplight_slope<-summary(light_toplight_trend)$logLightTop.trend
 anova(light_toplight_sp, type="III")
 
 leaf_habit_cols<-c("Deciduous"="chocolate4",
@@ -289,7 +297,6 @@ CD_height_sp<-lmer(CrownDepth~HeightTop*Species+(1|unique_plot),data=self_prunin
 species_means$CD_height_slope<-rep(fixef(CD_height_sp)[2],12)+c(0,fixef(CD_height_sp)[14:24])
 anova(CD_height_sp, type="III")
 
-## which species may show some evidence of correlative inhibition?
 CD_toplight_sp<-lmer(CrownDepth~logLightTop*Species+(1|unique_plot),data=self_pruning)
 species_means$CD_toplight_slope<-rep(fixef(CD_toplight_sp)[2],12)+c(0,fixef(CD_toplight_sp)[14:24])
 anova(CD_toplight_sp, type="III")
