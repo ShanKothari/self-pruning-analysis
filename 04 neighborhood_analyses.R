@@ -23,7 +23,7 @@ pair_plot<-ggpairs(self_pruning,
                                                   method = "lm",
                                                   se=F)))
 
-# pdf("Images/FigS3.pdf",height=16,width=16)
+# pdf("Images/FigS2.pdf",height=16,width=16)
 # pair_plot
 # dev.off()
 
@@ -160,7 +160,7 @@ plot_compile_CD<-ggpubr::ggarrange(neighbor_acq_plastic_CD,NCI_plastic_CD,
                                    ncol=1,nrow=4,
                                    common.legend=T,legend="bottom")
 
-# pdf("Images/Fig5.pdf",height=24,width=7)
+# pdf("Images/Fig4.pdf",height=24,width=7)
 # plot_compile_CD
 # dev.off()
 
@@ -276,13 +276,13 @@ light_top_slopes<-ggplot(data=species_means,
        color="Leaf habit")+
   guides(colour = guide_legend(position = "bottom"))
 
-pdf("Images/Fig4.pdf",height=24,width=12)
+# pdf("Images/Fig3.pdf",height=24,width=12)
 (neighbor_acq_plastic + neighbor_acq_slopes)/
   (NCI_plastic + NCI_slopes)/
   (height_plastic + height_slopes)/
   (light_top_plastic + light_top_slopes) &
   plot_layout(guides = "collect") + theme(legend.position = "bottom")
-dev.off()
+# dev.off()
 
 CD_neighbor_acq_sp<-lmer(CrownDepth~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
 species_means$CD_neighbor_acq_slope<-rep(fixef(CD_neighbor_acq_sp)[2],12)+c(0,fixef(CD_neighbor_acq_sp)[14:24])

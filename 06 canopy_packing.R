@@ -1,4 +1,4 @@
-setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
+setwd("C:/Users/Shan Kothari/Dropbox/PostdocProjects/SelfPruning")
 
 library(mosaic)
 library(reshape2)
@@ -17,7 +17,7 @@ self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 ## in the self-pruning survey. in A_4N8, THOC is missing;
 ## in D_4N3, PIST is missing; in A_2N3, BEPA (misplanted)
 ## is missing. these issues would otherwise threaten to
-## bias crown packing and complementarity calculations
+## bias crown packing calculations
 self_pruning<-subset(self_pruning,!(unique_plot %in% c("A_2N3","A_4N8","D_4N3")))
 
 ## get indicators of species composition
@@ -263,7 +263,7 @@ sim_vs_real<-ggplot(crown_vol_plot,
        y="Independent draws without plasticity (m)",
        color="Richness")
 
-# pdf("Images/FigS6.pdf",height=9,width=5)
+# pdf("Images/FigS5.pdf",height=9,width=5)
 # null_vs_real/sim_vs_real + 
 #   plot_layout(guides = "collect") & 
 #   theme(legend.position = 'bottom')
