@@ -8,6 +8,8 @@ library(lmerTest)
 library(emmeans)
 
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
+species_means<-read.csv("SelfPruningData/species_means.csv")
+self_pruning$leaf_habit<-species_means$leaf_habit[match(self_pruning$Species,species_means$Species)]
 
 ########################################
 ## relationships among individual-level variables
@@ -92,7 +94,8 @@ light_top_plastic<-ggplot(self_pruning,
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x=expression(italic(L[top])),
-       y=expression(italic(L[base])))
+       y=expression(italic(L[base])))+
+  guides(color = guide_legend(position = "bottom"))
 
 ## this plot is kind of odd and visually striking...
 height_plastic<-ggplot(self_pruning,
@@ -178,8 +181,6 @@ neighbor_acq_plastic_CB<-ggplot(self_pruning,
 
 ################################################
 ## pull out the species-specific slopes from mixed-effects models
-
-species_means<-read.csv("SelfPruningData/species_means.csv")
 
 ## no comparisons; REML = T by default
 light_neighbor_acq_sp<-lmer(logLightBase~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
@@ -272,18 +273,16 @@ light_top_slopes<-ggplot(data=species_means,
        y=expression(paste("Slopes: ",
                           italic(L[base]),
                           " ~ ",italic(L[top]))),
-       color="Leaf habit")
+       color="Leaf habit")+
+  guides(colour = guide_legend(position = "bottom"))
 
-plot_compile_Lbase<-ggpubr::ggarrange(neighbor_acq_plastic,neighbor_acq_slopes,
-                                      NCI_plastic,NCI_slopes,
-                                      height_plastic,height_slopes,
-                                      light_top_plastic,light_top_slopes,
-                                      ncol=2,nrow=4,
-                                      common.legend=T,legend="bottom")
-
-# pdf("Images/Fig4.pdf",height=24,width=12)
-# plot_compile_Lbase
-# dev.off()
+pdf("Images/Fig4.pdf",height=24,width=12)
+(neighbor_acq_plastic + neighbor_acq_slopes)/
+  (NCI_plastic + NCI_slopes)/
+  (height_plastic + height_slopes)/
+  (light_top_plastic + light_top_slopes) &
+  plot_layout(guides = "collect") + theme(legend.position = "bottom")
+dev.off()
 
 CD_neighbor_acq_sp<-lmer(CrownDepth~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
 species_means$CD_neighbor_acq_slope<-rep(fixef(CD_neighbor_acq_sp)[2],12)+c(0,fixef(CD_neighbor_acq_sp)[14:24])
