@@ -234,6 +234,6 @@ NBE_FTD_LH<-ggplot(plot_vars,aes(x=log(FTD_LH),y=NBE))+
   labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
        y=expression("NBE ( "*m^2*" "*ha^{-1}*")"))
 
-pdf("Images/FigS3.pdf",width=13,height=5)
+pdf("Images/FigS4.pdf",width=13,height=5)
 NBE_FTD+NBE_FTD_STH+NBE_FTD_LH
 dev.off()

@@ -23,7 +23,7 @@ pair_plot<-ggpairs(self_pruning,
                                                   method = "lm",
                                                   se=F)))
 
-# pdf("Images/FigS2.pdf",height=16,width=16)
+# pdf("Images/FigS3.pdf",height=16,width=16)
 # pair_plot
 # dev.off()
 
@@ -175,7 +175,7 @@ neighbor_acq_plastic_CB<-ggplot(self_pruning,
   labs(x="Neighbor acquisitiveness",
        y="Crown base height (cm)")
 
-# pdf("Images/FigS4.pdf",height=8,width=7)
+# pdf("Images/FigS6.pdf",height=8,width=7)
 # neighbor_acq_plastic_CB
 # dev.off()
 
