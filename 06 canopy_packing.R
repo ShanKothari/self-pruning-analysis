@@ -268,7 +268,7 @@ sim_vs_real<-ggplot(crown_vol_plot,
        color="Richness")+
   scale_color_manual(values=colorBlind)
 
-# pdf("Images/FigS5.pdf",height=9,width=5)
+# pdf("Images/FigS2.pdf",height=9,width=5)
 # null_vs_real/sim_vs_real +
 #   plot_layout(guides = "collect") &
 #   theme(legend.position = 'bottom')
@@ -278,8 +278,11 @@ sim_vs_real<-ggplot(crown_vol_plot,
 crown_vol_plot_sub<-crown_vol_plot[,c("unique_plot","Richness","FTD","FTD_LH","OY_actual","OY_sim","OY_null_sim",
                                       "total_sp_crown_vol","total_sp_sim_vol","total_sp_null_sim_vol")]
 crown_vol_plot_long<-melt(crown_vol_plot_sub,id.vars=c("unique_plot","Richness","FTD","FTD_LH"))
+
 crown_vol_plot_total<-crown_vol_plot_long[which(crown_vol_plot_long$variable
                                                 %in% c("total_sp_null_sim_vol","total_sp_sim_vol")),]
+crown_vol_plot_OY<-crown_vol_plot_long[which(crown_vol_plot_long$variable
+                                                %in% c("OY_null_sim","OY_sim")),]
 
 ggplot(crown_vol_plot_long,
        aes(x=log(FTD_LH),
@@ -289,6 +292,21 @@ ggplot(crown_vol_plot_long,
   theme_bw()+
   labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
        y="Crown volume or NBE per ground area (m)")
+
+plasticity_comparison_FT<-ggplot(crown_vol_plot_total,
+                                 aes(x=log(FTD),
+                                     y=value/9,
+                                     color=variable))+
+  geom_smooth(method="lm",se=F,linewidth=2)+
+  geom_point(size=2)+
+  theme_bw()+
+  theme(text=element_text(size=20),
+        legend.position = "bottom",
+        plot.margin = unit(c(0,0.5,0,0), "cm"))+
+  scale_color_hue(labels = c("Without plasticity", "With plasticity"))+
+  labs(x=expression("log("^q*"D(TM)) of functional traits"),
+       y="Crown volume per ground area (m)",
+       color="")
 
 plasticity_comparison_Lbase<-ggplot(crown_vol_plot_total,
                               aes(x=log(FTD_LH),
@@ -306,10 +324,15 @@ plasticity_comparison_Lbase<-ggplot(crown_vol_plot_total,
        y="Crown volume per ground area (m)",
        color="")
 
-plasticity_comparison_FT<-ggplot(crown_vol_plot_total,
-                              aes(x=log(FTD),
-                                  y=value/9,
-                                  color=variable))+
+# pdf("Images/Fig6.pdf",height=6,width=10)
+# plasticity_comparison_FT + plasticity_comparison_Lbase +
+#   plot_layout(guides = "collect") & theme(legend.position = "bottom")
+# dev.off()
+
+OY_FT<-ggplot(crown_vol_plot_OY,
+                 aes(x=log(FTD),
+                     y=value/9,
+                     color=variable))+
   geom_smooth(method="lm",se=F,linewidth=2)+
   geom_point(size=2)+
   theme_bw()+
@@ -318,13 +341,29 @@ plasticity_comparison_FT<-ggplot(crown_vol_plot_total,
         plot.margin = unit(c(0,0.5,0,0), "cm"))+
   scale_color_hue(labels = c("Without plasticity", "With plasticity"))+
   labs(x=expression("log("^q*"D(TM)) of functional traits"),
-       y="Crown volume per ground area (m)",
+       y="NBE on crown volume (m)",
        color="")
 
-# pdf("Images/Fig6.pdf",height=6,width=10)
-# plasticity_comparison_FT + plasticity_comparison_Lbase +
-#   plot_layout(guides = "collect") & theme(legend.position = "bottom")
-# dev.off()
+OY_Lbase<-ggplot(crown_vol_plot_OY,
+                 aes(x=log(FTD_LH),
+                     y=value/9,
+                     color=variable))+
+  geom_smooth(method="lm",se=F,linewidth=2)+
+  geom_point(size=2)+
+  theme_bw()+
+  theme(text=element_text(size=20),
+        legend.position = "bottom",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank())+
+  scale_color_hue(labels = c("Without plasticity", "With plasticity"))+
+  labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
+       y="NBE on crown volume (m)",
+       color="")
+
+pdf("Images/FigS5.pdf",height=6,width=10)
+OY_FT + OY_Lbase +
+  plot_layout(guides = "collect") & theme(legend.position = "bottom")
+dev.off()
 
 summary(lm(total_sp_null_sim_vol~FTD_LH,data=crown_vol_plot))
 summary(lm(total_sp_sim_vol~FTD_LH,data=crown_vol_plot))
