@@ -231,6 +231,9 @@ crown_vol_plot$FTD_LH<-plot_vars$FTD_LH[match(crown_vol_plot$unique_plot,plot_va
 ##########################################
 ## plotting canopy packing results
 
+colorBlind  <- c("#E69F00","#009E73","#56B4E9","#F0E442",
+                 "#0072B2","#CC79A7","#D55E00","#999999")
+
 ## this should be very tightly clustered around the 1:1 line
 ## because the 'null simulation' should be close to real values
 null_vs_real<-ggplot(crown_vol_plot,aes(x=total_sp_crown_vol/9,
@@ -246,7 +249,8 @@ null_vs_real<-ggplot(crown_vol_plot,aes(x=total_sp_crown_vol/9,
   labs(x="Actual crowns approach (m)",
        y="Independent draws with plasticity (m)",
        color="Richness")+
-  guides(color="none")
+  guides(color="none")+
+  scale_color_manual(values=colorBlind)
 
 ## this reveals that if you draw crown depth from monocultures,
 ## you generally get less total crown volume
@@ -261,11 +265,12 @@ sim_vs_real<-ggplot(crown_vol_plot,
   coord_cartesian(xlim=c(0,16),ylim=c(0,16))+
   labs(x="Actual crowns approach (m)",
        y="Independent draws without plasticity (m)",
-       color="Richness")
+       color="Richness")+
+  scale_color_manual(values=colorBlind)
 
 # pdf("Images/FigS5.pdf",height=9,width=5)
-# null_vs_real/sim_vs_real + 
-#   plot_layout(guides = "collect") & 
+# null_vs_real/sim_vs_real +
+#   plot_layout(guides = "collect") &
 #   theme(legend.position = 'bottom')
 # dev.off()
 
@@ -285,7 +290,7 @@ ggplot(crown_vol_plot_long,
   labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
        y="Crown volume or NBE per ground area (m)")
 
-plasticity_comparison<-ggplot(crown_vol_plot_total,
+plasticity_comparison_Lbase<-ggplot(crown_vol_plot_total,
                               aes(x=log(FTD_LH),
                                   y=value/9,
                                   color=variable))+
@@ -293,14 +298,32 @@ plasticity_comparison<-ggplot(crown_vol_plot_total,
   geom_point(size=2)+
   theme_bw()+
   theme(text=element_text(size=20),
-        legend.position = "bottom")+
+        legend.position = "bottom",
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank())+
   scale_color_hue(labels = c("Without plasticity", "With plasticity"))+
   labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
        y="Crown volume per ground area (m)",
        color="")
 
-# pdf("Images/Fig6.pdf",height=6,width=6)
-# plasticity_comparison
+plasticity_comparison_FT<-ggplot(crown_vol_plot_total,
+                              aes(x=log(FTD),
+                                  y=value/9,
+                                  color=variable))+
+  geom_smooth(method="lm",se=F,linewidth=2)+
+  geom_point(size=2)+
+  theme_bw()+
+  theme(text=element_text(size=20),
+        legend.position = "bottom",
+        plot.margin = unit(c(0,0.5,0,0), "cm"))+
+  scale_color_hue(labels = c("Without plasticity", "With plasticity"))+
+  labs(x=expression("log("^q*"D(TM)) of functional traits"),
+       y="Crown volume per ground area (m)",
+       color="")
+
+# pdf("Images/Fig6.pdf",height=6,width=10)
+# plasticity_comparison_FT + plasticity_comparison_Lbase +
+#   plot_layout(guides = "collect") & theme(legend.position = "bottom")
 # dev.off()
 
 summary(lm(total_sp_null_sim_vol~FTD_LH,data=crown_vol_plot))

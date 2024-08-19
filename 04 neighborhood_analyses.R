@@ -1,4 +1,4 @@
-setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
+setwd("C:/Users/Shan Kothari/Dropbox/PostdocProjects/SelfPruning")
 
 library(ggplot2)
 library(ggpubr)
@@ -280,8 +280,8 @@ light_top_slopes<-ggplot(data=species_means,
 (neighbor_acq_plastic + neighbor_acq_slopes)/
   (NCI_plastic + NCI_slopes)/
   (height_plastic + height_slopes)/
-  (light_top_plastic + light_top_slopes) &
-  plot_layout(guides = "collect") + theme(legend.position = "bottom")
+  (light_top_plastic + light_top_slopes) +
+  plot_layout(guides = "collect") & theme(legend.position = "bottom")
 # dev.off()
 
 CD_neighbor_acq_sp<-lmer(CrownDepth~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
