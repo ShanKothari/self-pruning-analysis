@@ -1,4 +1,4 @@
-setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning/")
+setwd("C:/Users/Shan Kothari/Dropbox/PostdocProjects/SelfPruning/")
 
 library(ggplot2)
 library(mice)
@@ -66,7 +66,7 @@ leaf_habit_cols<-c("Deciduous"="#a44f30",
 trait_pca_plot<-ggplot(trait_pca_scores, 
                        aes(x = -PC1, y = PC2)) +
   geom_text(size = 4,label = trait_pca_scores$species,
-            aes(color = trait_pca_scores$leaf_habit)) +
+            aes(color = leaf_habit)) +
   geom_segment(data = trait_pca_loadings,
                aes(x = 0, y = 0, xend = -PC1*5, yend = PC2*5),
                arrow = arrow(length = unit(1/2, "picas")),
@@ -80,13 +80,14 @@ trait_pca_plot<-ggplot(trait_pca_scores,
   theme(text=element_text(size=15),
         panel.background = element_rect(fill='transparent'), #transparent panel bg
         plot.background = element_rect(fill='transparent', color=NA),
-        legend.position = c(0.1,0.17),
+        legend.position.inside = c(0.11,0.17),
         legend.background = element_rect(fill = NA))+
   coord_fixed(ratio=trait_pca_perc[2]/trait_pca_perc[1])+
   scale_color_manual(values = leaf_habit_cols)+
   labs(x=paste("PC1 (",round(trait_pca_perc[1],1),"% variance)",sep=""),
        y=paste("PC2 (",round(trait_pca_perc[2],1),"% variance)",sep=""),
-       color="Leaf habit")
+       color="Leaf habit")+
+  guides(color=guide_legend(position = "inside"))
 
 pdf("Images/FigS1.pdf",width=7,height=4)
 trait_pca_plot
