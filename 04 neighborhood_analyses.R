@@ -6,10 +6,15 @@ library(GGally)
 library(lme4)
 library(lmerTest)
 library(emmeans)
+library(patchwork)
 
 self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 species_means<-read.csv("SelfPruningData/species_means.csv")
 self_pruning$leaf_habit<-species_means$leaf_habit[match(self_pruning$Species,species_means$Species)]
+
+trial_scale<-c("#FFB347","#4682B4","#5F9EA0","#6495ED",
+               "#20B2AA","#7B68EE","#FF6F61","#FFDD67",
+               "#D98E04","#F4A460","#008080","#D2691E")
 
 ########################################
 ## relationships among individual-level variables
@@ -21,7 +26,8 @@ pair_plot<-ggpairs(self_pruning,
                    aes(color=Species),
                    lower = list(continuous = wrap("smooth",
                                                   method = "lm",
-                                                  se=F)))
+                                                  se=F)))+
+  theme_bw()
 
 # pdf("Images/FigS3.pdf",height=16,width=16)
 # pair_plot
@@ -39,7 +45,7 @@ qDTM_plastic<-ggplot(self_pruning,
                      aes(x=qDTM,
                          y=logLightBase,
                          color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))
 
@@ -47,11 +53,12 @@ neighbor_acq_plastic<-ggplot(self_pruning,
                              aes(x=neighbor_acq,
                                  y=logLightBase,
                                  color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x="Neighbor acquisitiveness",
-       y=expression(italic(L[base])))+
+       y=expression(italic(L[base])),
+       title="Individuals")+
   guides(color="none")
 
 # png("Images/lfbase_nacq_ind.png",width=7,height=5,units="in",res=150)
@@ -62,7 +69,7 @@ acq_dist_plastic<-ggplot(self_pruning,
                          aes(x=acq_dist_abs,
                              y=logLightBase,
                              color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x="Functional distance from neighbors",
@@ -73,7 +80,7 @@ NCI_plastic<-ggplot(self_pruning,
                     aes(x=neighbor_comp,
                         y=logLightBase,
                         color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))+
   # labs(x="Indice de comp\u00e9tition (NCI)",
@@ -90,7 +97,7 @@ light_top_plastic<-ggplot(self_pruning,
                           aes(x=logLightTop,
                               y=logLightBase,
                               color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x=expression(italic(L[top])),
@@ -102,7 +109,7 @@ height_plastic<-ggplot(self_pruning,
                        aes(x=HeightTop,
                            y=logLightBase,
                            color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x="Tree height",
@@ -116,7 +123,7 @@ neighbor_acq_plastic_CD<-ggplot(self_pruning,
                                 aes(x=neighbor_acq,
                                     y=CrownDepth,
                                     color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x="Neighbor acquisitiveness",
@@ -127,21 +134,12 @@ NCI_plastic_CD<-ggplot(self_pruning,
                        aes(x=neighbor_comp,
                            y=CrownDepth,
                            color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=20))+
+  theme(text=element_text(size=20),
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank())+
   labs(x="NCI",
-       y="Crown depth (cm)")+
-  guides(color="none")
-
-light_top_plastic_CD<-ggplot(self_pruning,
-                             aes(x=logLightTop,
-                                 y=CrownDepth,
-                                 color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
-  theme_bw()+
-  theme(text=element_text(size=20))+
-  labs(x=expression(italic(L[top])),
        y="Crown depth (cm)")+
   guides(color="none")
 
@@ -149,26 +147,36 @@ height_plastic_CD<-ggplot(self_pruning,
                           aes(x=HeightTop,
                               y=CrownDepth,
                               color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x="Tree height",
        y="Crown depth (cm)")
 
-plot_compile_CD<-ggpubr::ggarrange(neighbor_acq_plastic_CD,NCI_plastic_CD,
-                                   height_plastic_CD,light_top_plastic_CD,
-                                   ncol=1,nrow=4,
-                                   common.legend=T,legend="bottom")
+light_top_plastic_CD<-ggplot(self_pruning,
+                             aes(x=logLightTop,
+                                 y=CrownDepth,
+                                 color=Species))+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
+  theme_bw()+
+  theme(text=element_text(size=20),
+        axis.text.y = element_blank(),
+        axis.title.y = element_blank())+
+  labs(x=expression(italic(L[top])),
+       y="Crown depth (cm)")+
+  guides(color="none")
 
-# pdf("Images/Fig4.pdf",height=24,width=7)
-# plot_compile_CD
-# dev.off()
+pdf("Images/Fig4.pdf",height=11,width=11)
+(neighbor_acq_plastic_CD + NCI_plastic_CD)/
+  (height_plastic_CD + light_top_plastic_CD) +
+  plot_layout(guides = "collect") & theme(legend.position = "bottom")
+dev.off()
 
 neighbor_acq_plastic_CB<-ggplot(self_pruning,
                                 aes(x=neighbor_acq,
                                     y=HeightBase,
                                     color=Species))+
-  geom_point()+geom_smooth(method="lm",se=F)+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20),
         legend.position = "bottom")+
@@ -218,11 +226,12 @@ neighbor_acq_slopes<-ggplot(data=species_means,
   scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
   theme(text=element_text(size=20))+
+  coord_cartesian(xlim = c(-2.6,2.4))+
   guides(color="none")+
   labs(x="Focal acquisitiveness",
-       y=expression(paste("Slopes: ",
-                          italic(L[base]),
-                          " ~ neighbor acquisitiveness")))
+       y=expression(paste(italic(L[base]),
+                          " ~ neighbor acquisitiveness")),
+       title="Species slopes")
 # ggsave(filename = "Images/neighbor_acq_slopes.png",neighbor_acq_slopes,
 #        dpi=600,width = 6,height=5)
 
@@ -234,12 +243,12 @@ NCI_slopes<-ggplot(data=species_means,
   geom_text(size=5,aes(color=leaf_habit))+
   theme_bw()+
   theme(text=element_text(size=20))+
+  coord_cartesian(xlim = c(-2.6,2.4))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
   labs(x="Focal acquisitiveness",
-       y=expression(paste("Slopes (" %*% "100): ",
-                          italic(L[base]),
-                          " ~ NCI")))
+       y=expression(paste(italic(L[base]),
+                          " ~ NCI (" %*% "100)")))
 # labs(x="Tendance acquisitive (CP1)",
 #      y=expression(paste("Pentes : ",italic(L[base])," ~ NCI")))
 # ggsave(filename = "Images/NCI_slopes_FR.png",NCI_slopes,
@@ -254,11 +263,11 @@ height_slopes<-ggplot(data=species_means,
   scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
   theme(text=element_text(size=20))+
+  coord_cartesian(xlim = c(-2.6,2.4))+
   guides(color="none")+
   labs(x="Focal acquisitiveness",
-       y=expression(paste("Slopes (" %*% "1000): ",
-                          italic(L[base]),
-                          " ~ top height")))
+       y=expression(paste(italic(L[base]),
+                          " ~ top height (" %*% "1000)")))
 
 light_top_slopes<-ggplot(data=species_means,
                          aes(x=focal_acq,
@@ -269,14 +278,15 @@ light_top_slopes<-ggplot(data=species_means,
   scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
   theme(text=element_text(size=20))+
+  coord_cartesian(xlim = c(-2.6,2.4))+
   labs(x="Focal acquisitiveness",
-       y=expression(paste("Slopes: ",
-                          italic(L[base]),
+       y=expression(paste(italic(L[base]),
                           " ~ ",italic(L[top]))),
        color="Leaf habit")+
   guides(colour = guide_legend(position = "bottom"))
 
 # pdf("Images/Fig3.pdf",height=24,width=12)
+pdf("Images/Fig3_tmp.pdf",height=22,width=11)
 (neighbor_acq_plastic + neighbor_acq_slopes)/
   (NCI_plastic + NCI_slopes)/
   (height_plastic + height_slopes)/
