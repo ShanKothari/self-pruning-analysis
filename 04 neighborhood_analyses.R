@@ -12,9 +12,14 @@ self_pruning<-read.csv("SelfPruningData/self_pruning_processed.csv")
 species_means<-read.csv("SelfPruningData/species_means.csv")
 self_pruning$leaf_habit<-species_means$leaf_habit[match(self_pruning$Species,species_means$Species)]
 
-trial_scale<-c("#FFB347","#4682B4","#5F9EA0","#6495ED",
-               "#20B2AA","#7B68EE","#FF6F61","#FFDD67",
-               "#D98E04","#F4A460","#008080","#D2691E")
+self_pruning$Species<-factor(self_pruning$Species,
+                             levels=c("ACRU","ACSA","BEAL","BEPA","LALA","QURU",
+                                      "ABBA","PIGL","PIRE","PIRU","PIST","THOC"))
+
+trial_scale<-c("#D17711","#FFFF00","#F2681F",
+               "#FDA600","#FFC58F","chocolate4",
+               "#003C96","#11A69C","#924AF7",
+               "#0081FE","#60941A","#A4F9AC")
 
 ########################################
 ## relationships among individual-level variables
@@ -27,7 +32,8 @@ pair_plot<-ggpairs(self_pruning,
                    lower = list(continuous = wrap("smooth",
                                                   method = "lm",
                                                   se=F)))+
-  theme_bw()
+  theme_bw()+
+  scale_color_manual(values=trial_scale)
 
 # pdf("Images/FigS3.pdf",height=16,width=16)
 # pair_plot
@@ -59,7 +65,8 @@ neighbor_acq_plastic<-ggplot(self_pruning,
   labs(x="Neighbor acquisitiveness",
        y=expression(italic(L[base])),
        title="Individuals")+
-  guides(color="none")
+  guides(color="none")+
+  scale_color_manual(values=trial_scale)
 
 # png("Images/lfbase_nacq_ind.png",width=7,height=5,units="in",res=150)
 # neighbor_acq_plastic
@@ -74,7 +81,8 @@ acq_dist_plastic<-ggplot(self_pruning,
   theme(text=element_text(size=20))+
   labs(x="Functional distance from neighbors",
        y=expression(italic(L[base])))+
-  guides(color="none")
+  guides(color="none")+
+  scale_color_manual(values=trial_scale)
 
 NCI_plastic<-ggplot(self_pruning,
                     aes(x=neighbor_comp,
@@ -87,7 +95,9 @@ NCI_plastic<-ggplot(self_pruning,
   #      y=expression(italic(L[base])))+
   labs(x="NCI",
        y=expression(italic(L[base])))+
-  guides(color="none")
+  guides(color="none")+
+  scale_color_manual(values=trial_scale)
+
 # ggsave(filename="Images/NCI_plastic.png",NCI_plastic,
 #        width=6,height=5,dpi=600)
 
@@ -102,7 +112,8 @@ light_top_plastic<-ggplot(self_pruning,
   theme(text=element_text(size=20))+
   labs(x=expression(italic(L[top])),
        y=expression(italic(L[base])))+
-  guides(color = guide_legend(position = "bottom"))
+  guides(color = guide_legend(position = "bottom"))+
+  scale_color_manual(values=trial_scale)
 
 ## this plot is kind of odd and visually striking...
 height_plastic<-ggplot(self_pruning,
@@ -114,7 +125,8 @@ height_plastic<-ggplot(self_pruning,
   theme(text=element_text(size=20))+
   labs(x="Tree height",
        y=expression(italic(L[base])))+
-  guides(color="none")
+  guides(color="none")+
+  scale_color_manual(values=trial_scale)
 
 ############################################
 ## relationships with crown depth
@@ -128,7 +140,8 @@ neighbor_acq_plastic_CD<-ggplot(self_pruning,
   theme(text=element_text(size=20))+
   labs(x="Neighbor acquisitiveness",
        y="Crown depth (cm)")+
-  guides(color="none")
+  guides(color="none")+
+  scale_color_manual(values=trial_scale)
 
 NCI_plastic_CD<-ggplot(self_pruning,
                        aes(x=neighbor_comp,
@@ -141,7 +154,8 @@ NCI_plastic_CD<-ggplot(self_pruning,
         axis.title.y = element_blank())+
   labs(x="NCI",
        y="Crown depth (cm)")+
-  guides(color="none")
+  guides(color="none")+
+  scale_color_manual(values=trial_scale)
 
 height_plastic_CD<-ggplot(self_pruning,
                           aes(x=HeightTop,
@@ -151,7 +165,8 @@ height_plastic_CD<-ggplot(self_pruning,
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x="Tree height",
-       y="Crown depth (cm)")
+       y="Crown depth (cm)")+
+  scale_color_manual(values=trial_scale)
 
 light_top_plastic_CD<-ggplot(self_pruning,
                              aes(x=logLightTop,
@@ -164,13 +179,14 @@ light_top_plastic_CD<-ggplot(self_pruning,
         axis.title.y = element_blank())+
   labs(x=expression(italic(L[top])),
        y="Crown depth (cm)")+
-  guides(color="none")
+  guides(color="none")+
+  scale_color_manual(values=trial_scale)
 
-pdf("Images/Fig4.pdf",height=11,width=11)
-(neighbor_acq_plastic_CD + NCI_plastic_CD)/
-  (height_plastic_CD + light_top_plastic_CD) +
-  plot_layout(guides = "collect") & theme(legend.position = "bottom")
-dev.off()
+# pdf("Images/Fig4.pdf",height=11,width=10)
+# (neighbor_acq_plastic_CD + NCI_plastic_CD)/
+#   (height_plastic_CD + light_top_plastic_CD) +
+#   plot_layout(guides = "collect") & theme(legend.position = "bottom")
+# dev.off()
 
 neighbor_acq_plastic_CB<-ggplot(self_pruning,
                                 aes(x=neighbor_acq,
@@ -181,7 +197,8 @@ neighbor_acq_plastic_CB<-ggplot(self_pruning,
   theme(text=element_text(size=20),
         legend.position = "bottom")+
   labs(x="Neighbor acquisitiveness",
-       y="Crown base height (cm)")
+       y="Crown base height (cm)")+
+  scale_color_manual(values=trial_scale)
 
 # pdf("Images/FigS6.pdf",height=8,width=7)
 # neighbor_acq_plastic_CB
@@ -285,28 +302,10 @@ light_top_slopes<-ggplot(data=species_means,
        color="Leaf habit")+
   guides(colour = guide_legend(position = "bottom"))
 
-# pdf("Images/Fig3.pdf",height=24,width=12)
-pdf("Images/Fig3_tmp.pdf",height=22,width=11)
-(neighbor_acq_plastic + neighbor_acq_slopes)/
-  (NCI_plastic + NCI_slopes)/
-  (height_plastic + height_slopes)/
-  (light_top_plastic + light_top_slopes) +
-  plot_layout(guides = "collect") & theme(legend.position = "bottom")
+# pdf("Images/Fig3.pdf",height=22,width=11)
+# (neighbor_acq_plastic + neighbor_acq_slopes)/
+#   (NCI_plastic + NCI_slopes)/
+#   (height_plastic + height_slopes)/
+#   (light_top_plastic + light_top_slopes) +
+#   plot_layout(guides = "collect") & theme(legend.position = "bottom")
 # dev.off()
-
-CD_neighbor_acq_sp<-lmer(CrownDepth~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
-species_means$CD_neighbor_acq_slope<-rep(fixef(CD_neighbor_acq_sp)[2],12)+c(0,fixef(CD_neighbor_acq_sp)[14:24])
-anova(CD_neighbor_acq_sp, type="III")
-
-CD_NCI_sp<-lmer(CrownDepth~neighbor_comp*Species+(1|unique_plot),data=self_pruning)
-species_means$CD_NCI_slope<-rep(fixef(CD_NCI_sp)[2],12)+c(0,fixef(CD_NCI_sp)[14:24])
-anova(CD_NCI_sp, type="III")
-
-CD_height_sp<-lmer(CrownDepth~HeightTop*Species+(1|unique_plot),data=self_pruning)
-species_means$CD_height_slope<-rep(fixef(CD_height_sp)[2],12)+c(0,fixef(CD_height_sp)[14:24])
-anova(CD_height_sp, type="III")
-
-CD_toplight_sp<-lmer(CrownDepth~logLightTop*Species+(1|unique_plot),data=self_pruning)
-species_means$CD_toplight_slope<-rep(fixef(CD_toplight_sp)[2],12)+c(0,fixef(CD_toplight_sp)[14:24])
-anova(CD_toplight_sp, type="III")
-
