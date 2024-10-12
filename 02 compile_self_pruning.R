@@ -1,4 +1,4 @@
-setwd("C:/Users/querc/Dropbox/PostdocProjects/SelfPruning")
+setwd("C:/Users/Shan Kothari/Dropbox/PostdocProjects/SelfPruning")
 
 library(ggplot2)
 library(chron)

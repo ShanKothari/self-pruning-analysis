@@ -33,9 +33,10 @@ pair_plot<-ggpairs(self_pruning,
                                                   method = "lm",
                                                   se=F)))+
   theme_bw()+
+  theme(text=element_text(size=25))+
   scale_color_manual(values=trial_scale)
 
-# pdf("Images/FigS3.pdf",height=16,width=16)
+# pdf("Images/FigS3.pdf",height=14,width=15)
 # pair_plot
 # dev.off()
 
@@ -207,28 +208,30 @@ neighbor_acq_plastic_CB<-ggplot(self_pruning,
 ################################################
 ## pull out the species-specific slopes from mixed-effects models
 
+sp_match<-match(species_means$Species,levels(self_pruning$Species))
+
 ## no comparisons; REML = T by default
 light_neighbor_acq_sp<-lmer(logLightBase~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
 light_neighbor_acq_trend<-emtrends(light_neighbor_acq_sp,"Species",var="neighbor_acq")
-species_means$light_neighbor_acq_slope<-summary(light_neighbor_acq_trend)$neighbor_acq.trend
+species_means$light_neighbor_acq_slope<-summary(light_neighbor_acq_trend)$neighbor_acq.trend[sp_match]
 anova(light_neighbor_acq_sp, type="III")
 ## very similar results
 # Anova(light_neighbor_acq_sp, type="III",test.statistic = "F")
 
 light_NCI_sp<-lmer(logLightBase~neighbor_comp*Species+(1|unique_plot),data=self_pruning)
 light_NCI_trend<-emtrends(light_NCI_sp,"Species",var="neighbor_comp")
-species_means$light_NCI_slope<-summary(light_NCI_trend)$neighbor_comp.trend
+species_means$light_NCI_slope<-summary(light_NCI_trend)$neighbor_comp.trend[sp_match]
 anova(light_NCI_sp, type="III")
 
 light_height_sp<-lmer(logLightBase~HeightTop*Species+(1|unique_plot),data=self_pruning)
 light_height_trend<-emtrends(light_height_sp,"Species",var="HeightTop")
-species_means$light_height_slope<-summary(light_height_trend)$HeightTop.trend
+species_means$light_height_slope<-summary(light_height_trend)$HeightTop.trend[sp_match]
 anova(light_height_sp, type="III")
 
 ## which species may show some evidence of correlative inhibition?
 light_toplight_sp<-lmer(logLightBase~logLightTop*Species+(1|unique_plot),data=self_pruning)
 light_toplight_trend<-emtrends(light_toplight_sp,"Species",var="logLightTop")
-species_means$light_toplight_slope<-summary(light_toplight_trend)$logLightTop.trend
+species_means$light_toplight_slope<-summary(light_toplight_trend)$logLightTop.trend[sp_match]
 anova(light_toplight_sp, type="III")
 
 leaf_habit_cols<-c("Deciduous"="chocolate4",

@@ -202,9 +202,9 @@ BA_FTD_LH<-ggplot(plot_vars,aes(x=log(FTD_LH),y=BasalArea))+
 # ggsave(filename = "Images/BA_FTD_LF.png", plot = BA_FTD_LH,
 #        width=6,height=5,units="in",dpi=600)
 
-pdf("Images/Fig5.pdf",width=13,height=5)
-BA_FTD+BA_FTD_STH+BA_FTD_LH
-dev.off()
+# pdf("Images/Fig5.pdf",width=13,height=5)
+# BA_FTD+BA_FTD_STH+BA_FTD_LH
+# dev.off()
 
 NBE_FTD<-ggplot(plot_vars,aes(x=log(FTD),y=NBE))+
   geom_point(size=2)+
@@ -234,6 +234,6 @@ NBE_FTD_LH<-ggplot(plot_vars,aes(x=log(FTD_LH),y=NBE))+
   labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
        y=expression("NBE ( "*m^2*" "*ha^{-1}*")"))
 
-pdf("Images/FigS4.pdf",width=13,height=5)
-NBE_FTD+NBE_FTD_STH+NBE_FTD_LH
-dev.off()
+# pdf("Images/FigS4.pdf",width=13,height=5)
+# NBE_FTD+NBE_FTD_STH+NBE_FTD_LH
+# dev.off()
