@@ -312,3 +312,20 @@ light_top_slopes<-ggplot(data=species_means,
 #   (light_top_plastic + light_top_slopes) +
 #   plot_layout(guides = "collect") & theme(legend.position = "bottom")
 # dev.off()
+
+CD_neighbor_acq_sp<-lmer(CrownDepth~neighbor_acq*Species+(1|unique_plot),data=self_pruning)
+species_means$CD_neighbor_acq_slope<-rep(fixef(CD_neighbor_acq_sp)[2],12)+c(0,fixef(CD_neighbor_acq_sp)[14:24])
+anova(CD_neighbor_acq_sp, type="III")
+
+CD_NCI_sp<-lmer(CrownDepth~neighbor_comp*Species+(1|unique_plot),data=self_pruning)
+species_means$CD_NCI_slope<-rep(fixef(CD_NCI_sp)[2],12)+c(0,fixef(CD_NCI_sp)[14:24])
+anova(CD_NCI_sp, type="III")
+
+CD_height_sp<-lmer(CrownDepth~HeightTop*Species+(1|unique_plot),data=self_pruning)
+species_means$CD_height_slope<-rep(fixef(CD_height_sp)[2],12)+c(0,fixef(CD_height_sp)[14:24])
+anova(CD_height_sp, type="III")
+
+CD_toplight_sp<-lmer(CrownDepth~logLightTop*Species+(1|unique_plot),data=self_pruning)
+species_means$CD_toplight_slope<-rep(fixef(CD_toplight_sp)[2],12)+c(0,fixef(CD_toplight_sp)[14:24])
+anova(CD_toplight_sp, type="III")
+

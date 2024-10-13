@@ -230,6 +230,6 @@ lfbase_ll_sp<-ggplot(data=species_means,
 #   labs(x="Shade tolerance",
 #        y="PC2")
 
-pdf("Images/Fig2.pdf",width = 5,height=13)
-lfbase_st_sp/lfbase_acq_sp/lfbase_ll_sp
-dev.off()
+# pdf("Images/Fig2.pdf",width = 5,height=13)
+# lfbase_st_sp/lfbase_acq_sp/lfbase_ll_sp
+# dev.off()
