@@ -107,7 +107,7 @@ crown_vol_agg$total_sp_crown_vol<-crown_vol_agg$crown_vol_live*crown_vol_agg$num
 ## simulations of canopy packing holding crown depth constant
 
 ## number of crowns to simulate for each species in each plot
-n_crowns<-250
+n_crowns<-500
 
 ## first, we simulate trees where the crown radius is sampled from
 ## species in the given plot and crown depth is sampled from
@@ -360,16 +360,16 @@ OY_Lbase<-ggplot(crown_vol_plot_OY,
        y="NBE on crown volume (m)",
        color="")
 
-pdf("Images/FigS5.pdf",height=6,width=10)
-OY_FT + OY_Lbase +
-  plot_layout(guides = "collect") & theme(legend.position = "bottom")
-dev.off()
+# pdf("Images/FigS5.pdf",height=6,width=10)
+# OY_FT + OY_Lbase +
+#   plot_layout(guides = "collect") & theme(legend.position = "bottom")
+# dev.off()
 
-summary(lm(total_sp_null_sim_vol~FTD_LH,data=crown_vol_plot))
-summary(lm(total_sp_sim_vol~FTD_LH,data=crown_vol_plot))
+summary(lm(total_sp_null_sim_vol~log(FTD_LH),data=crown_vol_plot))
+summary(lm(total_sp_sim_vol~log(FTD_LH),data=crown_vol_plot))
 
-summary(lm(total_sp_null_sim_vol~FTD,data=crown_vol_plot))
-summary(lm(total_sp_sim_vol~FTD,data=crown_vol_plot))
+summary(lm(total_sp_null_sim_vol~log(FTD),data=crown_vol_plot))
+summary(lm(total_sp_sim_vol~log(FTD),data=crown_vol_plot))
 
 t.test(crown_vol_plot$total_sp_null_sim_vol[crown_vol_plot$Richness!=1]/9,
        crown_vol_plot$total_sp_sim_vol[crown_vol_plot$Richness!=1]/9,
