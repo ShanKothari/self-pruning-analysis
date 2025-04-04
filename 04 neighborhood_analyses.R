@@ -124,10 +124,26 @@ height_plastic<-ggplot(self_pruning,
   geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))+
-  labs(x="Tree height",
+  labs(x="Tree height (cm)",
        y=expression(italic(L[base])))+
   guides(color="none")+
   scale_color_manual(values=trial_scale)
+
+depth_plastic<-ggplot(self_pruning,
+                       aes(x=CrownDepth,
+                           y=logLightBase,
+                           color=Species))+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
+  theme_bw()+
+  theme(text=element_text(size=20))+
+  labs(x="Crown depth (cm)",
+       y=expression(italic(L[base])))+
+  guides(color="none")+
+  scale_color_manual(values=trial_scale)
+
+# pdf("Images/depth_plastic.pdf",height=5,width=5)
+# depth_plastic
+# dev.off()
 
 ############################################
 ## relationships with crown depth
@@ -165,7 +181,7 @@ height_plastic_CD<-ggplot(self_pruning,
   geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
   theme(text=element_text(size=20))+
-  labs(x="Tree height",
+  labs(x="Tree height (cm)",
        y="Crown depth (cm)")+
   scale_color_manual(values=trial_scale)
 
@@ -205,6 +221,23 @@ neighbor_acq_plastic_CB<-ggplot(self_pruning,
 # neighbor_acq_plastic_CB
 # dev.off()
 
+## radius ~ depth allometry
+radius_depth<-ggplot(self_pruning,
+                     aes(y=CR_average,
+                         x=CrownDepth,
+                         color=Species))+
+  geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
+  theme_bw()+
+  theme(text=element_text(size=20),
+        legend.position = "bottom")+
+  labs(y="Average crown radius (cm)",
+       x="Crown depth (cm)")+
+  scale_color_manual(values=trial_scale)
+
+pdf("Images/FigS_radius_depth.pdf",height=8,width=7)
+radius_depth
+dev.off()
+
 ################################################
 ## pull out the species-specific slopes from mixed-effects models
 
@@ -242,6 +275,7 @@ neighbor_acq_slopes<-ggplot(data=species_means,
                                 y=light_neighbor_acq_slope,
                                 label=Species))+
   geom_smooth(method="lm")+
+  geom_point(size=1.5)+
   geom_text(size=5,aes(color=leaf_habit))+
   scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
@@ -260,6 +294,7 @@ NCI_slopes<-ggplot(data=species_means,
                        y=light_NCI_slope*100,
                        label=Species))+
   geom_smooth(method="lm")+
+  geom_point(size=1.5)+
   geom_text(size=5,aes(color=leaf_habit))+
   theme_bw()+
   theme(text=element_text(size=20))+
@@ -279,6 +314,7 @@ height_slopes<-ggplot(data=species_means,
                           y=light_height_slope*1000,
                           label=Species))+
   geom_smooth(method="lm")+
+  geom_point(size=1.5)+
   geom_text(size=5,aes(color=leaf_habit))+
   scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
@@ -294,6 +330,7 @@ light_top_slopes<-ggplot(data=species_means,
                              y=light_toplight_slope,
                              label=Species))+
   geom_smooth(method="lm")+
+  geom_point(size=1.5)+
   geom_text(size=5,aes(color=leaf_habit))+
   scale_color_manual(values = leaf_habit_cols)+
   theme_bw()+
