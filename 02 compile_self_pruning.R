@@ -149,6 +149,7 @@ st_acq_sp<-ggplot(data=species_means,
                          y=focal_acq,
                          label=Species))+
   geom_smooth(method="lm")+
+  geom_point(size=1.5)+
   geom_text(size=5,aes(color=leaf_habit))+
   theme_bw()+
   theme(text=element_text(size=20))+
@@ -164,11 +165,13 @@ lfbase_st_sp<-ggplot(data=species_means,
                          y=logLightBase,
                          label=Species))+
   geom_smooth(method="lm")+
+  geom_point(size=1.5)+
   geom_text(size=5,aes(color=leaf_habit))+
   theme_bw()+
   theme(text=element_text(size=20),
         panel.grid.minor = element_blank())+
-  coord_cartesian(ylim=c(-6.5,-2.5))+
+  coord_cartesian(ylim=c(-6.5,-2.5),
+                  xlim=c(0.8,5.2))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
   # labs(x="Tol\u00e9rance \u00e0 l'ombre",
@@ -183,11 +186,13 @@ lfbase_acq_sp<-ggplot(data=species_means,
                           y=logLightBase,
                           label=Species))+
   geom_smooth(method="lm")+
+  geom_point(size=1.5)+
   geom_text(size=5,aes(color=leaf_habit))+
   theme_bw()+
   theme(text=element_text(size=20),
         panel.grid.minor = element_blank())+
-  coord_cartesian(ylim=c(-6.5,-2.5))+
+  coord_cartesian(ylim=c(-6.5,-2.5),
+                  xlim=c(-2.7,2.5))+
   guides(color="none")+
   scale_color_manual(values = leaf_habit_cols)+
   # labs(x="Tendance acquisitive (CP1)",
@@ -211,13 +216,40 @@ lfbase_ll_sp<-ggplot(data=species_means,
         legend.position = c(0.7, 0.8),
         legend.background = element_rect(fill = NA),
         panel.grid.minor = element_blank())+
-  coord_cartesian(ylim=c(-6.5,-2.5))+
+  coord_cartesian(ylim=c(-6.5,-2.5),
+                  xlim=c(1.2,4.5))+
   scale_color_manual(values = leaf_habit_cols)+
   labs(x="log(leaf lifespan [months])",
        y=expression(italic(L[base])),
        color="Leaf habit")
 # ggsave(filename = "Images/lfbase_ll_sp.png",plot = lfbase_ll_sp,
 #        width=6,height=5,units="in",dpi=600)
+
+mono_comparison<-ggplot(data=species_means,
+                        aes(x=logLightBase,
+                            y=logLightBase_mono,
+                            label=Species))+
+  geom_abline(slope=1,intercept=0,linewidth=2,linetype="dashed")+
+  geom_smooth(method="lm")+
+  geom_smooth(data=species_means[species_means$leaf_habit=="Evergreen",],
+              aes(x=log(leaf_lifespan),y=logLightBase),
+              method="lm",color="red",se=F)+
+  geom_text(size=5,aes(color=leaf_habit))+
+  theme_bw()+
+  theme(text=element_text(size=20),
+        legend.position = c(0.7, 0.3),
+        legend.background = element_rect(fill = NA),
+        panel.grid.minor = element_blank())+
+  coord_cartesian(ylim=c(-6.5,-2.7),
+                  xlim=c(-6.5,-2.7))+
+  scale_color_manual(values = leaf_habit_cols)+
+  labs(y=expression(paste(italic(L[base])," in monocultures")),
+       x=expression(italic(L[base])),
+       color="Leaf habit")
+
+pdf("Images/FigS_mono_comp.pdf",width = 5,height = 5)
+mono_comparison
+dev.off()
 
 ## PC2 from the trait data (mostly LDMC)
 ## is actually correlated with shade tolerance!
