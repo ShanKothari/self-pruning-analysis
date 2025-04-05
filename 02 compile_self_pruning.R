@@ -231,9 +231,7 @@ mono_comparison<-ggplot(data=species_means,
                             label=Species))+
   geom_abline(slope=1,intercept=0,linewidth=2,linetype="dashed")+
   geom_smooth(method="lm")+
-  geom_smooth(data=species_means[species_means$leaf_habit=="Evergreen",],
-              aes(x=log(leaf_lifespan),y=logLightBase),
-              method="lm",color="red",se=F)+
+  geom_point(size=1.5)+
   geom_text(size=5,aes(color=leaf_habit))+
   theme_bw()+
   theme(text=element_text(size=20),
@@ -247,9 +245,9 @@ mono_comparison<-ggplot(data=species_means,
        x=expression(italic(L[base])),
        color="Leaf habit")
 
-pdf("Images/FigS_mono_comp.pdf",width = 5,height = 5)
-mono_comparison
-dev.off()
+# pdf("Images/FigS_mono_comp.pdf",width = 5,height = 5)
+# mono_comparison
+# dev.off()
 
 ## PC2 from the trait data (mostly LDMC)
 ## is actually correlated with shade tolerance!
