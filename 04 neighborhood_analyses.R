@@ -130,20 +130,20 @@ height_plastic<-ggplot(self_pruning,
   scale_color_manual(values=trial_scale)
 
 depth_plastic<-ggplot(self_pruning,
-                       aes(x=CrownDepth,
-                           y=logLightBase,
+                       aes(y=CrownDepth,
+                           x=logLightBase,
                            color=Species))+
   geom_point(alpha=0.5)+geom_smooth(method="lm",se=F)+
   theme_bw()+
-  theme(text=element_text(size=20))+
-  labs(x="Crown depth (cm)",
-       y=expression(italic(L[base])))+
-  guides(color="none")+
+  theme(text=element_text(size=20),
+        legend.position = "bottom")+
+  labs(y="Crown depth (cm)",
+       x=expression(italic(L[base])))+
   scale_color_manual(values=trial_scale)
 
-# pdf("Images/depth_plastic.pdf",height=5,width=5)
-# depth_plastic
-# dev.off()
+pdf("Images/depth_plastic.pdf",height=8,width=7)
+depth_plastic
+dev.off()
 
 ############################################
 ## relationships with crown depth
@@ -234,9 +234,9 @@ radius_depth<-ggplot(self_pruning,
        x="Crown depth (cm)")+
   scale_color_manual(values=trial_scale)
 
-pdf("Images/FigS_radius_depth.pdf",height=8,width=7)
-radius_depth
-dev.off()
+# pdf("Images/FigS_radius_depth.pdf",height=8,width=7)
+# radius_depth
+# dev.off()
 
 ################################################
 ## pull out the species-specific slopes from mixed-effects models
