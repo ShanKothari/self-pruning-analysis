@@ -79,7 +79,7 @@ self_pruning$CrownDepth<-self_pruning$HeightTop-self_pruning$HeightBase
 ## basal diameter is missing from one tree, which presumably died
 ## between Jon's measurements and the fall survey
 self_pruning$BasalDiam<-as.numeric(self_pruning$BasalDiam)
-self_pruning$BasalArea<-(self_pruning$BasalDiam/2)^2*pi
+self_pruning$BasalArea<-(self_pruning$BasalDiam/20)^2*pi
 
 ## log-transforming light shows better statistical properties
 ## and is justifiable via the Beer-Lambert idealization of
