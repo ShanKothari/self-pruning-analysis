@@ -207,6 +207,7 @@ lfbase_ll_sp<-ggplot(data=species_means,
                          y=logLightBase,
                          label=Species))+
   geom_smooth(method="lm")+
+  geom_point(size=1.5)+
   geom_smooth(data=species_means[species_means$leaf_habit=="Evergreen",],
               aes(x=log(leaf_lifespan),y=logLightBase),
               method="lm",color="red",se=F)+

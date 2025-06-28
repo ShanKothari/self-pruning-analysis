@@ -176,7 +176,7 @@ BA_FTD<-ggplot(plot_vars,aes(x=log(FTD),y=BasalArea))+
   theme_bw()+
   theme(text=element_text(size=20))+
   labs(x=expression("log("^q*"D(TM)) of functional traits"),
-       y=expression("Basal area ( "*m^2*" "*ha^{-1}*")"))
+       y=expression("Basal area ("*m^2*" "*ha^{-1}*")"))
 
 BA_FTD_STH<-ggplot(plot_vars,aes(x=log(FTD_STH),y=BasalArea))+
   geom_point(size=2)+
@@ -186,7 +186,7 @@ BA_FTD_STH<-ggplot(plot_vars,aes(x=log(FTD_STH),y=BasalArea))+
         axis.title.y = element_blank(),
         axis.text.y = element_blank())+
   labs(x=expression("log("^q*"D(TM)) of shade tolerance"),
-       y=expression("Basal area ( "*m^2*" "*ha^{-1}*")"))
+       y=expression("Basal area ("*m^2*" "*ha^{-1}*")"))
 
 BA_FTD_LH<-ggplot(plot_vars,aes(x=log(FTD_LH),y=BasalArea))+
   geom_point(size=2)+
@@ -196,9 +196,9 @@ BA_FTD_LH<-ggplot(plot_vars,aes(x=log(FTD_LH),y=BasalArea))+
         axis.title.y = element_blank(),
         axis.text.y = element_blank())+
   labs(x=expression("log("^q*"D(TM)) of "*italic("L"*""[base])),
-       y=expression("Basal area ( "*m^2*" "*ha^{-1}*")"))
+       y=expression("Basal area ("*m^2*" "*ha^{-1}*")"))
   # labs(x=expression("Diversity of "*italic("L"*""[base])),
-  #      y=expression("Basal area ( "*m^2*" "*ha^{-1}*")"))
+  #      y=expression("Basal area ("*m^2*" "*ha^{-1}*")"))
 # ggsave(filename = "Images/BA_FTD_LF.png", plot = BA_FTD_LH,
 #        width=6,height=5,units="in",dpi=600)
 
